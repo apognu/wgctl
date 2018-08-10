@@ -1,0 +1,39 @@
+[prune]
+  go-tests = true
+  unused-packages = true
+
+[[constraint]]
+  name = "gopkg.in/alecthomas/kingpin.v2"
+  version = "2.2.6"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mdlayher/netlink"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mdlayher/genetlink"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.6"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/lunixbochs/struc"
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  version = "1.7.0"
+
+[[constraint]]
+  name = "github.com/vishvananda/netlink"
+  version = "1.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/lorenzosaino/go-sysctl"
+
+[[constraint]]
+  branch = "master"
+  name = "code.cloudfoundry.org/bytefmt"
