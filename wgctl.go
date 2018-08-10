@@ -43,6 +43,7 @@ func main() {
 
 	appStatus := app.Command("status", "Show tunnel status.").PreAction(requireRoot)
 	appStatusInstance := appStatus.Arg("instance", instanceDesc).String()
+	appStatusShort := appStatus.Flag("short", "only display the names of active tunnels").Short('s').Default("false").Bool()
 
 	appInfo := app.Command("info", "Get tunnel information.").PreAction(requireRoot)
 	appInfoInstance := appInfo.Arg("instance", "name of your WireGuard configuration").Required().String()
@@ -60,7 +61,7 @@ func main() {
 		stop(*appRestartInstance)
 		start(*appRestartInstance, *appRestartRoutes)
 	case appStatus.FullCommand():
-		status(*appStatusInstance)
+		status(*appStatusInstance, *appStatusShort, false)
 	case appInfo.FullCommand():
 		info(*appInfoInstance)
 	case appVersion.FullCommand():

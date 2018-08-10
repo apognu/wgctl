@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -11,26 +12,37 @@ import (
 	nl "github.com/vishvananda/netlink"
 )
 
-func status(instance string) {
+func status(instance string, short bool, all bool) {
 	if instance == "" {
-		statusAll()
+		statusAll(short)
 		return
 	}
 
 	l, err := nl.LinkByName(instance)
 	if err != nil {
-		Down("tunnel '%s' is down", instance)
-		return
+		if !short {
+			Down("tunnel '%s' is down", instance)
+		}
+		os.Exit(1)
 	}
 
 	if l.Type() == wireguard.NetlinkName {
-		Up("tunnel '%s' is up and running", instance)
+		if short {
+			fmt.Printf("%s\n", instance)
+		} else {
+			Up("tunnel '%s' is up and running", instance)
+		}
 	} else {
-		Down("interface '%s' does not seem to be a WireGuard device", instance)
+		if !short {
+			Down("interface '%s' does not seem to be a WireGuard device", instance)
+		}
+		if !all {
+			os.Exit(1)
+		}
 	}
 }
 
-func statusAll() {
+func statusAll(short bool) {
 	instances, err := filepath.Glob(fmt.Sprintf("%s/*.yml", wireguard.GetConfigPath()))
 	if err != nil {
 		logrus.Fatalf("could not enumerate your configurations: %s", err.Error())
@@ -39,7 +51,7 @@ func statusAll() {
 	for _, path := range instances {
 		i := wireguard.GetInstanceFromArg(path)
 
-		status(i)
+		status(i, short, true)
 	}
 }
 
