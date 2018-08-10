@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -126,7 +127,12 @@ func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 }
 
 func ParseConfig(instance string) *Config {
-	config, err := os.Open(fmt.Sprintf("/etc/wireguard/%s.yml", instance))
+	path := fmt.Sprintf("/etc/wireguard/%s.yml", instance)
+	if _, err := os.Stat(instance); err == nil {
+		path = instance
+	}
+
+	config, err := os.Open(path)
 	if err != nil {
 		logrus.Fatalf("could not read configuration file: %s", err.Error())
 	}
@@ -138,4 +144,11 @@ func ParseConfig(instance string) *Config {
 	}
 
 	return c
+}
+
+func GetInstanceFromArg(path string) string {
+	if _, err := os.Stat(path); err == nil {
+		return strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	}
+	return path
 }

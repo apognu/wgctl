@@ -37,7 +37,7 @@ func statusAll() {
 	}
 
 	for _, path := range instances {
-		i := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+		i := wireguard.GetInstanceFromArg(path)
 
 		status(i)
 	}

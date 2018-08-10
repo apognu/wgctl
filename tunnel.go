@@ -6,6 +6,7 @@ import (
 
 func start(instance string, routes bool) {
 	config := wireguard.ParseConfig(instance)
+	instance = wireguard.GetInstanceFromArg(instance)
 
 	wireguard.AddDevice(instance, config)
 	wireguard.ConfigureDevice(instance, config)
@@ -15,5 +16,7 @@ func start(instance string, routes bool) {
 }
 
 func stop(instance string) {
+	instance = wireguard.GetInstanceFromArg(instance)
+
 	wireguard.DeleteDevice(instance)
 }
