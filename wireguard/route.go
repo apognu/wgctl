@@ -34,15 +34,17 @@ func AddDevice(instance string, config *Config) {
 		logrus.Fatalf("could not find recently created device: %s", err.Error())
 	}
 
-	sn := net.IPNet(*config.Interface.Address)
-	addr, err := nl.ParseAddr(fmt.Sprintf("%s", sn.String()))
-	if err != nil {
-		logrus.Fatalf("could not set device's IP address: %s", err.Error())
-	}
+	if config.Interface.Address != nil {
+		sn := net.IPNet(*config.Interface.Address)
+		addr, err := nl.ParseAddr(fmt.Sprintf("%s", sn.String()))
+		if err != nil {
+			logrus.Fatalf("could not set device's IP address: %s", err.Error())
+		}
 
-	err = nl.AddrAdd(l, addr)
-	if err != nil {
-		logrus.Fatalf("could not set device's IP address: %s", err.Error())
+		err = nl.AddrAdd(l, addr)
+		if err != nil {
+			logrus.Fatalf("could not set device's IP address: %s", err.Error())
+		}
 	}
 
 	err = nl.LinkSetUp(l)

@@ -82,6 +82,10 @@ func (key *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 	}
 
 	if k, err := ioutil.ReadFile(*b); err == nil {
+		if err != nil {
+			return fmt.Errorf("could not read private key")
+		}
+
 		b64key := strings.TrimSpace(string(k))
 		k, err = base64.StdEncoding.DecodeString(b64key)
 		if err != nil || len(k) != KeyLength {
@@ -92,7 +96,7 @@ func (key *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 		return nil
 	}
 
-	return fmt.Errorf("coud not open private key file")
+	return fmt.Errorf("could not open private key file")
 }
 
 func (key *Key) UnmarshalYAML(f func(interface{}) error) error {
@@ -126,6 +130,21 @@ func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 	return nil
 }
 
+func (c *Config) Check() {
+	if len(c.Interface.PrivateKey) != KeyLength {
+		logrus.Fatalf("configuration check failed: 'private_key' must be provided")
+	}
+	if c.Interface.ListenPort == 0 {
+		logrus.Fatalf("configuration check failed: 'listen_port' must be provided")
+	}
+
+	for _, p := range c.Peers {
+		if len(p.PublicKey) != KeyLength {
+			logrus.Fatalf("configuration check failed: peer's 'public_key' must be provided")
+		}
+	}
+}
+
 func ParseConfig(instance string) *Config {
 	path := fmt.Sprintf("%s/%s.yml", GetConfigPath(), instance)
 	if _, err := os.Stat(instance); err == nil {
@@ -142,6 +161,8 @@ func ParseConfig(instance string) *Config {
 	if err != nil {
 		logrus.Fatalf("could not parse configuration file: %s", err.Error())
 	}
+
+	c.Check()
 
 	return c
 }
