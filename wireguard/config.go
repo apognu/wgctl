@@ -127,7 +127,7 @@ func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 }
 
 func ParseConfig(instance string) *Config {
-	path := fmt.Sprintf("/etc/wireguard/%s.yml", instance)
+	path := fmt.Sprintf("%s/%s.yml", GetConfigPath(), instance)
 	if _, err := os.Stat(instance); err == nil {
 		path = instance
 	}
@@ -144,6 +144,13 @@ func ParseConfig(instance string) *Config {
 	}
 
 	return c
+}
+
+func GetConfigPath() string {
+	if len(strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))) > 0 {
+		return strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))
+	}
+	return "/etc/wireguard"
 }
 
 func GetInstanceFromArg(path string) string {

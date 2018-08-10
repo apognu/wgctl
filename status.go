@@ -31,7 +31,7 @@ func status(instance string) {
 }
 
 func statusAll() {
-	instances, err := filepath.Glob("/etc/wireguard/*.yml")
+	instances, err := filepath.Glob(fmt.Sprintf("%s/*.yml", wireguard.GetConfigPath()))
 	if err != nil {
 		logrus.Fatalf("could not enumerate your configurations: %s", err.Error())
 	}
