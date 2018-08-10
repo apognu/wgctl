@@ -13,10 +13,14 @@ func start(instance string, routes bool) {
 	if routes {
 		wireguard.AddDeviceRoutes(instance, config)
 	}
+
+	Up("tunnel '%s' has been brought up", instance)
 }
 
 func stop(instance string) {
 	instance = wireguard.GetInstanceFromArg(instance)
 
 	wireguard.DeleteDevice(instance)
+
+	Down("tunnel '%s' has been torn down", instance)
 }
