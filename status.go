@@ -23,7 +23,10 @@ func status(instance string, short bool, all bool) {
 		if !short {
 			Down("tunnel '%s' is down", instance)
 		}
-		os.Exit(1)
+		if !all {
+			os.Exit(1)
+		}
+		return
 	}
 
 	if l.Type() == wireguard.NetlinkName {
