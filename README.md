@@ -13,6 +13,10 @@ interface:
   listen_port: 42000
   private_key: /etc/wireguard/vpn1.key
   fwmark: 1024
+  post_up:
+    - [ '/usr/bin/notify-send', 'WireGuard tunnel went up', 'A WireGuard tunnel was just brought up. Congrats.' ]
+  pre_down:
+    - [ '/usr/bin/notify-send', 'WireGuard tunnel went down', 'A WireGuard tunnel was just torn down. Congrats.' ]
 peers:
   - description: VPN gateway at provider X
     public_key: cyfBMbaJ6kgnDYjio6xqWikvTz2HvpmvSQocRmF/ZD4=
@@ -25,6 +29,8 @@ peers:
 ```
 
 By default, ```wgctl``` will look for its configuration files under ```/etc/wireguard``` (as ```/etc/wireguard/<id>.yml```). This can be overriden by giving it a filesystem path instead of an identifier. You can alsow set the directory where ```wgctl``` looks for its configuration by settings the environment variable ```WGCTL_CONFIG_PATH```.
+
+The ```post_up``` and ```pre_down``` directives take an array of arrays of commands to execute during the tunnel lifecycle events. You must use an absolute path to target the command you want to invoke.
 
 Keep in mind that in order to put IPv6 addresses in the configuration, you'll need to coerce the value to a string with quotes :
 

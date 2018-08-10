@@ -28,6 +28,8 @@ type Config struct {
 		ListenPort int            `yaml:"listen_port"`
 		PrivateKey PrivateKeyFile `yaml:"private_key"`
 		FWMark     int            `yaml:"fwmark"`
+		PostUp     [][]string     `yaml:"post_up"`
+		PreDown    [][]string     `yaml:"pre_down"`
 	} `yaml:"interface"`
 	Peers []*Peer `yaml:"peers"`
 }
