@@ -54,8 +54,8 @@ Commands:
   help [<command>...]
   start [<flags>] <instance>
   stop <instance>
-  restart [<flags>] <config>
-  status [<instance>]
+  restart [<flags>] <instance>
+  status [<flags>] [<instance>]
   info <instance>
   version
 

@@ -38,7 +38,7 @@ func main() {
 	appStopInstance := appStop.Arg("instance", instanceDesc).Required().String()
 
 	appRestart := app.Command("restart", "Restart a tunnel from its configuration.").PreAction(requireRoot)
-	appRestartInstance := appRestart.Arg("config", instanceDesc).Required().String()
+	appRestartInstance := appRestart.Arg("instance", instanceDesc).Required().String()
 	appRestartRoutes := appRestart.Flag("route", "set up routing when this tunnel comes up (--no-route to disable)").Default("true").Bool()
 
 	appStatus := app.Command("status", "Show tunnel status.").PreAction(requireRoot)
