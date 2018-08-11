@@ -13,6 +13,7 @@ interface:
   listen_port: 42000
   private_key: /etc/wireguard/vpn1.key
   fwmark: 1024
+  routes: false
   post_up:
     - [ '/usr/bin/notify-send', 'WireGuard tunnel went up', 'A WireGuard tunnel was just brought up. Congrats.' ]
   pre_down:
@@ -87,3 +88,11 @@ tunnel:
     allowed ips: 192.168.0.1/30, 0.0.0.0/0
     transfer: ↓ 0 ↑ 0
 ```
+
+## Routes and firewall
+
+By default, ```wgctl``` will add routes matching your allowed IP addresses in order to traffic to be routed through your VPN. Similarly to ```wg-quick```, il will set up any default routes to route all your traffic (with the ```fwmark``` technique).
+
+If you want to manage the routing yourself, you can pass ```--no-routes``` to ```wgctl start``` and ```wgctl restart``` to prevent that behavior. You can also set the ```interface``` directive ```routes``` to ```false``` to disable this behavior permanently.
+
+```wgctl``` will not touch your firewall rules, if you need to open a port or add specific rules, you'll need to do it yourself manually, or use a ```post_up``` directive.

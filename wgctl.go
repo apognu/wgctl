@@ -32,14 +32,14 @@ func main() {
 
 	appStart := app.Command("start", "Bring up a tunnel.").Alias("up").PreAction(requireRoot)
 	appStartInstance := appStart.Arg("instance", instanceDesc).Required().String()
-	appStartRoutes := appStart.Flag("route", "set up routing when this tunnel comes up (--no-route to disable)").Default("true").Bool()
+	appStartNoRoutes := appStart.Flag("no-routes", "do not set up routing").Default("false").Bool()
 
 	appStop := app.Command("stop", "Tear down a tunnel.").Alias("down").PreAction(requireRoot)
 	appStopInstance := appStop.Arg("instance", instanceDesc).Required().String()
 
 	appRestart := app.Command("restart", "Restart a tunnel from its configuration.").PreAction(requireRoot)
 	appRestartInstance := appRestart.Arg("instance", instanceDesc).Required().String()
-	appRestartRoutes := appRestart.Flag("route", "set up routing when this tunnel comes up (--no-route to disable)").Default("true").Bool()
+	appRestartNoRoutes := appRestart.Flag("no-routes", "do not set up routing").Default("false").Bool()
 
 	appStatus := app.Command("status", "Show tunnel status.").PreAction(requireRoot)
 	appStatusInstance := appStatus.Arg("instance", instanceDesc).String()
@@ -54,12 +54,12 @@ func main() {
 
 	switch args {
 	case appStart.FullCommand():
-		start(*appStartInstance, *appStartRoutes)
+		start(*appStartInstance, *appStartNoRoutes)
 	case appStop.FullCommand():
 		stop(*appStopInstance)
 	case appRestart.FullCommand():
 		stop(*appRestartInstance)
-		start(*appRestartInstance, *appRestartRoutes)
+		start(*appRestartInstance, *appRestartNoRoutes)
 	case appStatus.FullCommand():
 		status(*appStatusInstance, *appStatusShort, false)
 	case appInfo.FullCommand():

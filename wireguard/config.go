@@ -30,6 +30,7 @@ type Config struct {
 		FWMark      int            `yaml:"fwmark"`
 		PostUp      [][]string     `yaml:"post_up"`
 		PreDown     [][]string     `yaml:"pre_down"`
+		SetUpRoutes *bool          `yaml:"routes"`
 	} `yaml:"interface"`
 	Peers []*Peer `yaml:"peers"`
 }
@@ -41,6 +42,70 @@ type Peer struct {
 	Endpoint          *TCPAddr     `yaml:"endpoint"`
 	AllowedIPS        []*IPNet     `yaml:"allowed_ips"`
 	KeepaliveInterval int          `yaml:"keepalive_interval"`
+}
+
+func ParseConfig(instance string) *Config {
+	path := fmt.Sprintf("%s/%s.yml", GetConfigPath(), instance)
+	if _, err := os.Stat(instance); err == nil {
+		path = instance
+	}
+
+	config, err := os.Open(path)
+	if err != nil {
+		logrus.Fatalf("could not read configuration file: %s", err.Error())
+	}
+
+	c := new(Config)
+	err = yaml.NewDecoder(config).Decode(c)
+	if err != nil {
+		logrus.Fatalf("could not parse configuration file: %s", err.Error())
+	}
+
+	c.Check()
+
+	return c
+}
+
+func (c *Config) Check() {
+	if c.Interface.SetUpRoutes == nil {
+		v := true
+		c.Interface.SetUpRoutes = &v
+	}
+	if len(c.Interface.PrivateKey) != KeyLength {
+		logrus.Fatalf("configuration check failed: 'private_key' must be provided")
+	}
+	if c.Interface.ListenPort == 0 {
+		logrus.Fatalf("configuration check failed: 'listen_port' must be provided")
+	}
+
+	for _, p := range c.Peers {
+		if len(p.PublicKey) != KeyLength {
+			logrus.Fatalf("configuration check failed: peer's 'public_key' must be provided")
+		}
+	}
+}
+
+func (c *Config) GetPeer(publicKey string) *Peer {
+	for _, p := range c.Peers {
+		if p.PublicKey.String() == publicKey {
+			return p
+		}
+	}
+	return nil
+}
+
+func GetConfigPath() string {
+	if len(strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))) > 0 {
+		return strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))
+	}
+	return "/etc/wireguard"
+}
+
+func GetInstanceFromArg(path string) string {
+	if _, err := os.Stat(path); err == nil {
+		return strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	}
+	return path
 }
 
 func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
@@ -117,6 +182,10 @@ func (key *Key) UnmarshalYAML(f func(interface{}) error) error {
 	return nil
 }
 
+func (k Key) String() string {
+	return base64.StdEncoding.EncodeToString(k)
+}
+
 func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
@@ -130,68 +199,4 @@ func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 
 	*key = k
 	return nil
-}
-
-func (c *Config) Check() {
-	if len(c.Interface.PrivateKey) != KeyLength {
-		logrus.Fatalf("configuration check failed: 'private_key' must be provided")
-	}
-	if c.Interface.ListenPort == 0 {
-		logrus.Fatalf("configuration check failed: 'listen_port' must be provided")
-	}
-
-	for _, p := range c.Peers {
-		if len(p.PublicKey) != KeyLength {
-			logrus.Fatalf("configuration check failed: peer's 'public_key' must be provided")
-		}
-	}
-}
-
-func (c *Config) GetPeer(publicKey string) *Peer {
-	for _, p := range c.Peers {
-		if p.PublicKey.String() == publicKey {
-			return p
-		}
-	}
-	return nil
-}
-
-func (k Key) String() string {
-	return base64.StdEncoding.EncodeToString(k)
-}
-
-func ParseConfig(instance string) *Config {
-	path := fmt.Sprintf("%s/%s.yml", GetConfigPath(), instance)
-	if _, err := os.Stat(instance); err == nil {
-		path = instance
-	}
-
-	config, err := os.Open(path)
-	if err != nil {
-		logrus.Fatalf("could not read configuration file: %s", err.Error())
-	}
-
-	c := new(Config)
-	err = yaml.NewDecoder(config).Decode(c)
-	if err != nil {
-		logrus.Fatalf("could not parse configuration file: %s", err.Error())
-	}
-
-	c.Check()
-
-	return c
-}
-
-func GetConfigPath() string {
-	if len(strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))) > 0 {
-		return strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))
-	}
-	return "/etc/wireguard"
-}
-
-func GetInstanceFromArg(path string) string {
-	if _, err := os.Stat(path); err == nil {
-		return strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
-	}
-	return path
 }

@@ -10,13 +10,13 @@ import (
 	"github.com/apognu/wgctl/wireguard"
 )
 
-func start(instance string, routes bool) {
+func start(instance string, noRoutes bool) {
 	config := wireguard.ParseConfig(instance)
 	instance = wireguard.GetInstanceFromArg(instance)
 
 	wireguard.AddDevice(instance, config)
 	wireguard.ConfigureDevice(instance, config)
-	if routes {
+	if !noRoutes && *config.Interface.SetUpRoutes {
 		wireguard.AddDeviceRoutes(instance, config)
 	}
 
