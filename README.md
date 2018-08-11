@@ -7,8 +7,8 @@ This tool is very opinionated and designed for my own use, it _might_ not be wha
 The configuration file should look like this:
 
 ```
-description: Personal VPN server #1
 interface:
+  description: Personal VPN server #1
   address: 192.168.0.1/32
   listen_port: 42000
   private_key: /etc/wireguard/vpn1.key

@@ -22,14 +22,14 @@ type Key []byte
 type PresharedKey []byte
 
 type Config struct {
-	Description string `yaml:"description"`
-	Interface   struct {
-		Address    *IPNet         `yaml:"address"`
-		ListenPort int            `yaml:"listen_port"`
-		PrivateKey PrivateKeyFile `yaml:"private_key"`
-		FWMark     int            `yaml:"fwmark"`
-		PostUp     [][]string     `yaml:"post_up"`
-		PreDown    [][]string     `yaml:"pre_down"`
+	Interface struct {
+		Description string         `yaml:"description"`
+		Address     *IPNet         `yaml:"address"`
+		ListenPort  int            `yaml:"listen_port"`
+		PrivateKey  PrivateKeyFile `yaml:"private_key"`
+		FWMark      int            `yaml:"fwmark"`
+		PostUp      [][]string     `yaml:"post_up"`
+		PreDown     [][]string     `yaml:"pre_down"`
 	} `yaml:"interface"`
 	Peers []*Peer `yaml:"peers"`
 }
@@ -145,6 +145,19 @@ func (c *Config) Check() {
 			logrus.Fatalf("configuration check failed: peer's 'public_key' must be provided")
 		}
 	}
+}
+
+func (c *Config) GetPeer(publicKey string) *Peer {
+	for _, p := range c.Peers {
+		if p.PublicKey.String() == publicKey {
+			return p
+		}
+	}
+	return nil
+}
+
+func (k Key) String() string {
+	return base64.StdEncoding.EncodeToString(k)
 }
 
 func ParseConfig(instance string) *Config {

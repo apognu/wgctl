@@ -59,12 +59,18 @@ func statusAll(short bool) {
 }
 
 func info(instance string) {
+	config := wireguard.ParseConfig(instance)
 	dev, err := wireguard.GetDevice(instance)
 	if err != nil {
 		logrus.Fatalf("could not retrieve device information: %s", err)
 	}
 
-	PrintSection(0, "tunnel", "", tunnelColor)
+	description := "<no description provided>"
+	if len(config.Interface.Description) > 0 {
+		description = config.Interface.Description
+	}
+
+	PrintSection(0, "tunnel", description, tunnelColor)
 	PrintAttr(1, "interface", dev.Name, true)
 	PrintAttr(1, "public key", dev.PublicKey, true)
 	PrintAttr(1, "port", strconv.Itoa(dev.ListenPort), true)
@@ -72,7 +78,14 @@ func info(instance string) {
 
 	if len(dev.Peers) > 0 {
 		for _, p := range dev.Peers {
-			PrintSection(1, "peer", "", peerColor)
+			description := "<no description provided>"
+			if peerSpec := config.GetPeer(p.PublicKey); peerSpec != nil {
+				if len(peerSpec.Description) > 0 {
+					description = peerSpec.Description
+				}
+			}
+
+			PrintSection(1, "peer", description, peerColor)
 			PrintAttr(2, "public key", p.PublicKey, true)
 
 			if p.Endpoint != nil {

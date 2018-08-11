@@ -42,7 +42,8 @@ func PrintAttr(pad int, key string, value string, predicate bool, args ...interf
 func PrintSection(pad int, key string, value string, color *color.Color, args ...interface{}) {
 	padding(pad)
 
-	color.Println(fmt.Sprintf("%s: %s", key, fmt.Sprintf(value, args...)))
+	color.Print(fmt.Sprintf("%s: ", key))
+	fmt.Printf("%s\n", fmt.Sprintf(value, args...))
 }
 
 func FormatInterval(then time.Time) string {
