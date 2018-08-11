@@ -2,7 +2,7 @@
 
 This is a personal project to allow WireGuard to be configured through the use of YAML files. It uses Netlink under the hood for all interaction with the system.
 
-This tool is very opinionated and designed for my own use, it _might_ not be what you're looking for. For instance, it probably does not handle IPv6 very well for now.
+This tool is very opinionated and designed for my own use (working on that), it _might_ not be what you're looking for.
 
 The configuration file should look like this:
 
@@ -77,11 +77,11 @@ Commands:
 
 # wgctl info vpn2
 tunnel: 
-  interface: gcp
+  interface: Perosnal VPN tunnel #2
   public key: SqtWXnIGoHWibfqZwAe6iFc560wWuV6zUL+4CqzDxlQ=
   port: 51822
   fwmark: 12548
-  peer: 
+  peer: VPN gateway
     public key: /7vJFkiTPPTznPvey4Z4+xn+HRGlT/X3hv1o4+kS7FQ=
     endpoint: 4.3.2.1:10000
     allowed ips: 192.168.0.1/30, 0.0.0.0/0
