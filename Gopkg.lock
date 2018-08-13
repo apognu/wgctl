@@ -71,7 +71,7 @@
     ".",
     "nlenc"
   ]
-  revision = "4d9e7d64efb8eb92f48bcc34cac193b27e6c9214"
+  revision = "80a6f93efd374ddee4e0ea862ca0085ef42eed65"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -86,19 +86,8 @@
   version = "v1.0.6"
 
 [[projects]]
-  name = "github.com/stretchr/objx"
-  packages = ["."]
-  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
-  version = "v0.1.1"
-
-[[projects]]
   name = "github.com/stretchr/testify"
-  packages = [
-    ".",
-    "assert",
-    "http",
-    "mock"
-  ]
+  packages = ["assert"]
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
 
@@ -120,14 +109,17 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
-  revision = "f027049dab0ad238e394a753dba2d14753473a04"
+  packages = [
+    "curve25519",
+    "ssh/terminal"
+  ]
+  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["bpf"]
-  revision = "f9ce57c11b242f0f1599cf25c89d8cb02c45295a"
+  revision = "c39426892332e1bb5ec0a434a079bf82f5d30c54"
 
 [[projects]]
   branch = "master"
@@ -136,7 +128,7 @@
     "unix",
     "windows"
   ]
-  revision = "3249cb6984157e6ed574d535fb27fc72a94a67e2"
+  revision = "98c5dad5d1a0e8a73845ecc8897d0bd56586511d"
 
 [[projects]]
   name = "gopkg.in/alecthomas/kingpin.v2"
@@ -153,6 +145,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5da3b8046f0a4d1f363b5a6081d372c845ecea23eb6bea06ee4ddeeae7b71312"
+  inputs-digest = "00e74bed4d38a6efaaab5d725d95fbc6f53cb5ad57f5b3ef29f1085c950af549"
   solver-name = "gps-cdcl"
   solver-version = 1

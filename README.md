@@ -64,6 +64,9 @@ Commands:
   restart [<flags>] <instance>
   status [<flags>] [<instance>]
   info <instance>
+  key
+    generate
+    public
   version
 
 # wgctl start vpn

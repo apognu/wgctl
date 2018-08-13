@@ -48,6 +48,10 @@ func main() {
 	appInfo := app.Command("info", "Get tunnel information.").PreAction(requireRoot)
 	appInfoInstance := appInfo.Arg("instance", "name of your WireGuard configuration").Required().String()
 
+	appKey := app.Command("key", "Manage WireGuard keys")
+	appKeyGenerate := appKey.Command("generate", "generate a new private key")
+	appKeyPublic := appKey.Command("public", "compute public key from a private key from stdin'")
+
 	appVersion := app.Command("version", "Get version information.")
 
 	args := kingpin.MustParse(app.Parse(os.Args[1:]))
@@ -66,6 +70,10 @@ func main() {
 		info(*appInfoInstance)
 	case appVersion.FullCommand():
 		version()
+	case appKeyGenerate.FullCommand():
+		generateKey()
+	case appKeyPublic.FullCommand():
+		generatePublicKey()
 	}
 }
 
