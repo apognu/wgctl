@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"os"
@@ -22,17 +23,19 @@ type Key []byte
 type PresharedKey []byte
 
 type Config struct {
-	Interface struct {
-		Description string         `yaml:"description"`
-		Address     *IPNet         `yaml:"address"`
-		ListenPort  int            `yaml:"listen_port"`
-		PrivateKey  PrivateKeyFile `yaml:"private_key"`
-		FWMark      int            `yaml:"fwmark"`
-		PostUp      [][]string     `yaml:"post_up"`
-		PreDown     [][]string     `yaml:"pre_down"`
-		SetUpRoutes *bool          `yaml:"routes"`
-	} `yaml:"interface"`
-	Peers []*Peer `yaml:"peers"`
+	Interface `yaml:"interface"`
+	Peers     []*Peer `yaml:"peers"`
+}
+
+type Interface struct {
+	Description string         `yaml:"description"`
+	Address     *IPNet         `yaml:"address"`
+	ListenPort  int            `yaml:"listen_port"`
+	PrivateKey  PrivateKeyFile `yaml:"private_key"`
+	FWMark      int            `yaml:"fwmark"`
+	PostUp      [][]string     `yaml:"post_up"`
+	PreDown     [][]string     `yaml:"pre_down"`
+	SetUpRoutes *bool          `yaml:"routes"`
 }
 
 type Peer struct {
@@ -55,34 +58,43 @@ func ParseConfig(instance string) *Config {
 		logrus.Fatalf("could not read configuration file: %s", err.Error())
 	}
 
+	return ParseConfigReader(config)
+}
+
+func ParseConfigReader(config io.Reader) *Config {
 	c := new(Config)
-	err = yaml.NewDecoder(config).Decode(c)
+	err := yaml.NewDecoder(config).Decode(c)
 	if err != nil {
 		logrus.Fatalf("could not parse configuration file: %s", err.Error())
 	}
 
-	c.Check()
+	err = c.Check()
+	if err != nil {
+		logrus.Fatalf("configuration check failed: %s", err.Error())
+	}
 
 	return c
 }
 
-func (c *Config) Check() {
+func (c *Config) Check() error {
 	if c.Interface.SetUpRoutes == nil {
 		v := true
 		c.Interface.SetUpRoutes = &v
 	}
 	if len(c.Interface.PrivateKey) != KeyLength {
-		logrus.Fatalf("configuration check failed: 'private_key' must be provided")
+		return fmt.Errorf("'private_key' must be provided")
 	}
 	if c.Interface.ListenPort == 0 {
-		logrus.Fatalf("configuration check failed: 'listen_port' must be provided")
+		return fmt.Errorf("'listen_port' must be provided")
 	}
 
 	for _, p := range c.Peers {
 		if len(p.PublicKey) != KeyLength {
-			logrus.Fatalf("configuration check failed: peer's 'public_key' must be provided")
+			return fmt.Errorf("peer's 'public_key' must be provided")
 		}
 	}
+
+	return nil
 }
 
 func (c *Config) GetPeer(publicKey string) *Peer {
@@ -166,6 +178,10 @@ func (key *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not open private key file")
 }
 
+func (k *PrivateKeyFile) String() string {
+	return base64.StdEncoding.EncodeToString([]byte(*k))
+}
+
 func (key *Key) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
@@ -199,4 +215,8 @@ func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 
 	*key = k
 	return nil
+}
+
+func (k *PresharedKey) String() string {
+	return hex.EncodeToString([]byte(*k))
 }
