@@ -18,38 +18,38 @@ type NetlinkAttribute uint16
 
 const (
 	_ = iota
-	DeviceIndex
-	DeviceName
+	NLDeviceIndex
+	NLDeviceName
 )
 
 const (
 	_ = iota
 	_
-	WGDeviceName
-	WGDevicePrivateKey
-	WGDevicePublicKey
+	NLWGDeviceName
+	NLWGDevicePrivateKey
+	NLWGDevicePublicKey
 	_
-	WGDeviceListenPort
-	WGDeviceFWMark
-	WGDevicePeers
+	NLWGDeviceListenPort
+	NLWGDeviceFWMark
+	NLWGDevicePeers
 )
 
 const (
 	_ = iota
-	WGPeerPublicKey
-	WGPeerPresharedKey
+	NLWGPeerPublicKey
+	NLWGPeerPresharedKey
 	_
-	WGPeerEndpoint
-	WGPeerKeepaliveInterval
-	WGPeerLastHandshake
-	WGPeerRxBytes
-	WGPeerTxBytes
-	WGPeerAllowedIPs
+	NLWGPeerEndpoint
+	NLWGPeerKeepaliveInterval
+	NLWGPeerLastHandshake
+	NLWGPeerRxBytes
+	NLWGPeerTxBytes
+	NLWGPeerAllowedIPs
 )
 
 const (
 	_ = iota
-	WGAllowedIPFamily
-	WGAllowedIPAddress
-	WGAllowedIPCIDR
+	NLWGAllowedIPFamily
+	NLWGAllowedIPAddress
+	NLWGAllowedIPCIDR
 )

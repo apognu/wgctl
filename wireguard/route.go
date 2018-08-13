@@ -24,7 +24,7 @@ func AddDevice(instance string, config *Config) {
 	attrs := nl.NewLinkAttrs()
 	attrs.Name = instance
 
-	err := nl.LinkAdd(&WireGuardLink{LinkAttrs: attrs})
+	err := nl.LinkAdd(&WGLink{LinkAttrs: attrs})
 	if err != nil {
 		logrus.Fatalf("could not create device: %s", err.Error())
 	}

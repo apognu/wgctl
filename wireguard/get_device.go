@@ -13,7 +13,7 @@ import (
 )
 
 func GetDevice(ifname string) (*WGDevice, error) {
-	attrs := map[uint16][]byte{DeviceName: nlenc.Bytes(ifname)}
+	attrs := map[uint16][]byte{NLDeviceName: nlenc.Bytes(ifname)}
 	flags := netlink.HeaderFlagsRequest | netlink.HeaderFlagsDump
 	resp, err := Request(CommandGetDevice, flags, attrs)
 	if err != nil {
@@ -29,17 +29,17 @@ func GetDevice(ifname string) (*WGDevice, error) {
 
 		for attr.Next() {
 			switch attr.Type() {
-			case WGDeviceName:
+			case NLWGDeviceName:
 				dev.Name = attr.String()
-			case WGDeviceListenPort:
+			case NLWGDeviceListenPort:
 				dev.ListenPort = int(attr.Uint16())
-			case WGDevicePublicKey:
+			case NLWGDevicePublicKey:
 				attr.Do(ParseKey(&dev.PublicKey))
-			case WGDevicePrivateKey:
+			case NLWGDevicePrivateKey:
 				attr.Do(ParseKey(&dev.PrivateKey))
-			case WGDeviceFWMark:
+			case NLWGDeviceFWMark:
 				dev.FWMark = int(attr.Uint32())
-			case WGDevicePeers:
+			case NLWGDevicePeers:
 				attr.Do(ParsePeers(&dev.Peers))
 			}
 		}
@@ -48,14 +48,14 @@ func GetDevice(ifname string) (*WGDevice, error) {
 	return dev, nil
 }
 
-func ParsePeers(devPeers *[]*WGPeer) func(b []byte) error {
+func ParsePeers(devPeers *WGPeers) func(b []byte) error {
 	return func(b []byte) error {
 		attrs, err := netlink.UnmarshalAttributes(b)
 		if err != nil {
 			return err
 		}
 
-		peers := make([]*WGPeer, len(attrs))
+		peers := make(WGPeers, len(attrs))
 		for idx, data := range attrs {
 			attr, err := netlink.NewAttributeDecoder(data.Data)
 			if err != nil {
@@ -66,21 +66,21 @@ func ParsePeers(devPeers *[]*WGPeer) func(b []byte) error {
 
 			for attr.Next() {
 				switch attr.Type() {
-				case WGPeerPublicKey:
+				case NLWGPeerPublicKey:
 					attr.Do(ParseKey(&peer.PublicKey))
-				case WGPeerPresharedKey:
+				case NLWGPeerPresharedKey:
 					attr.Do(ParsePresharedKey(&peer.PresharedKey))
-				case WGPeerEndpoint:
+				case NLWGPeerEndpoint:
 					attr.Do(ParseEndpoint(&peer.Endpoint))
-				case WGPeerAllowedIPs:
+				case NLWGPeerAllowedIPs:
 					attr.Do(ParseAllowedIPs(&peer.AllowedIPs))
-				case WGPeerLastHandshake:
+				case NLWGPeerLastHandshake:
 					attr.Do(ParseLastHandshake(&peer.LastHandshake))
-				case WGPeerKeepaliveInterval:
+				case NLWGPeerKeepaliveInterval:
 					peer.KeepaliveInterval = int(attr.Uint16())
-				case WGPeerRxBytes:
+				case NLWGPeerRxBytes:
 					peer.RXBytes = int(attr.Uint64())
-				case WGPeerTxBytes:
+				case NLWGPeerTxBytes:
 					peer.TXBytes = int(attr.Uint64())
 				}
 			}
@@ -94,14 +94,14 @@ func ParsePeers(devPeers *[]*WGPeer) func(b []byte) error {
 	}
 }
 
-func ParseAllowedIPs(devIPs *PeerAllowedIPs) func(b []byte) error {
+func ParseAllowedIPs(devIPs *WGPeerAllowedIPs) func(b []byte) error {
 	return func(b []byte) error {
 		attrs, err := netlink.UnmarshalAttributes(b)
 		if err != nil {
 			return err
 		}
 
-		ips := make(PeerAllowedIPs, len(attrs))
+		ips := make(WGPeerAllowedIPs, len(attrs))
 		for idx, data := range attrs {
 			attr, err := netlink.NewAttributeDecoder(data.Data)
 			if err != nil {
@@ -112,9 +112,9 @@ func ParseAllowedIPs(devIPs *PeerAllowedIPs) func(b []byte) error {
 
 			for attr.Next() {
 				switch attr.Type() {
-				case WGAllowedIPAddress:
+				case NLWGAllowedIPAddress:
 					attr.Do(ParseIPAddress(&ip.Address))
-				case WGAllowedIPCIDR:
+				case NLWGAllowedIPCIDR:
 					ip.CIDR = int(attr.Uint8())
 				}
 			}

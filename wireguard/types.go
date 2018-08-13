@@ -7,17 +7,20 @@ import (
 	nl "github.com/vishvananda/netlink"
 )
 
-type WireGuardLink struct {
+type WGLink struct {
 	nl.LinkAttrs
 }
 
-func (wg *WireGuardLink) Type() string {
+func (wg *WGLink) Type() string {
 	return "wireguard"
 }
 
-func (wg *WireGuardLink) Attrs() *nl.LinkAttrs {
+func (wg *WGLink) Attrs() *nl.LinkAttrs {
 	return &wg.LinkAttrs
 }
+
+type WGPeers []*WGPeer
+type WGPeerAllowedIPs []*WGAllowedIP
 
 type WGDevice struct {
 	Name       string
@@ -26,21 +29,19 @@ type WGDevice struct {
 	PrivateKey string
 	FWMark     int
 
-	Peers []*WGPeer
+	Peers WGPeers
 }
 
 type WGPeer struct {
 	PublicKey         string
 	PresharedKey      string
 	Endpoint          *net.UDPAddr
-	AllowedIPs        PeerAllowedIPs
+	AllowedIPs        WGPeerAllowedIPs
 	LastHandshake     time.Time
 	KeepaliveInterval int
 	RXBytes           int
 	TXBytes           int
 }
-
-type PeerAllowedIPs []*WGAllowedIP
 
 type WGAllowedIP struct {
 	Address *net.IP

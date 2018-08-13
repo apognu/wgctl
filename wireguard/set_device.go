@@ -15,8 +15,8 @@ func SetFWMark(instance string, fwmark int) error {
 	flags := netlink.HeaderFlagsRequest | netlink.HeaderFlagsAcknowledge
 
 	attrs := map[uint16][]byte{
-		WGDeviceName:   nlenc.Bytes(instance),
-		WGDeviceFWMark: nlenc.Uint32Bytes(uint32(fwmark)),
+		NLWGDeviceName:   nlenc.Bytes(instance),
+		NLWGDeviceFWMark: nlenc.Uint32Bytes(uint32(fwmark)),
 	}
 
 	_, err := Request(CommandSetDevice, flags, attrs)
@@ -31,10 +31,10 @@ func ConfigureDevice(instance string, config *Config) {
 	flags := netlink.HeaderFlagsRequest | netlink.HeaderFlagsAcknowledge
 
 	attrs := map[uint16][]byte{
-		WGDeviceName:       nlenc.Bytes(instance),
-		WGDevicePrivateKey: config.Interface.PrivateKey,
-		WGDeviceListenPort: nlenc.Uint16Bytes(uint16(config.Interface.ListenPort)),
-		WGDeviceFWMark:     nlenc.Uint32Bytes(uint32(config.Interface.FWMark)),
+		NLWGDeviceName:       nlenc.Bytes(instance),
+		NLWGDevicePrivateKey: config.Interface.PrivateKey,
+		NLWGDeviceListenPort: nlenc.Uint16Bytes(uint16(config.Interface.ListenPort)),
+		NLWGDeviceFWMark:     nlenc.Uint32Bytes(uint32(config.Interface.FWMark)),
 	}
 
 	if len(config.Peers) > 0 {
@@ -48,7 +48,7 @@ func ConfigureDevice(instance string, config *Config) {
 			logrus.Fatalf("could not marshal netlink peers attributes: %s", err.Error())
 		}
 
-		attrs[WGDevicePeers] = nlb
+		attrs[NLWGDevicePeers] = nlb
 	}
 
 	_, err := Request(CommandSetDevice, flags, attrs)
@@ -59,15 +59,15 @@ func ConfigureDevice(instance string, config *Config) {
 
 func ParsePeer(p *Peer) []byte {
 	attrs := map[uint16][]byte{
-		WGPeerPublicKey: p.PublicKey,
+		NLWGPeerPublicKey: p.PublicKey,
 	}
 
 	if len(p.PresharedKey) > 0 {
-		attrs[WGPeerPresharedKey] = p.PresharedKey
+		attrs[NLWGPeerPresharedKey] = p.PresharedKey
 	}
 
 	if p.KeepaliveInterval > 0 {
-		attrs[WGPeerKeepaliveInterval] = nlenc.Uint16Bytes(uint16(p.KeepaliveInterval))
+		attrs[NLWGPeerKeepaliveInterval] = nlenc.Uint16Bytes(uint16(p.KeepaliveInterval))
 	}
 
 	if p.Endpoint != nil {
@@ -97,7 +97,7 @@ func ParsePeer(p *Peer) []byte {
 			logrus.Fatalf(err.Error())
 		}
 
-		attrs[WGPeerEndpoint] = b.Bytes()
+		attrs[NLWGPeerEndpoint] = b.Bytes()
 
 		if len(p.AllowedIPS) > 0 {
 			aips := make(map[uint16][]byte, len(p.AllowedIPS))
@@ -110,7 +110,7 @@ func ParsePeer(p *Peer) []byte {
 				logrus.Fatalf("could not marshal netlink peers attributes: %s", err.Error())
 			}
 
-			attrs[WGPeerAllowedIPs] = nlb
+			attrs[NLWGPeerAllowedIPs] = nlb
 		}
 	}
 
@@ -128,15 +128,15 @@ func ParseAllowedIP(ip net.IPNet) []byte {
 	var attrs map[uint16][]byte
 	if ip.IP.To4() != nil {
 		attrs = map[uint16][]byte{
-			WGAllowedIPFamily:  nlenc.Uint16Bytes(unix.AF_INET),
-			WGAllowedIPAddress: ip.IP.To4(),
-			WGAllowedIPCIDR:    nlenc.Uint8Bytes(uint8(mask)),
+			NLWGAllowedIPFamily:  nlenc.Uint16Bytes(unix.AF_INET),
+			NLWGAllowedIPAddress: ip.IP.To4(),
+			NLWGAllowedIPCIDR:    nlenc.Uint8Bytes(uint8(mask)),
 		}
 	} else {
 		attrs = map[uint16][]byte{
-			WGAllowedIPFamily:  nlenc.Uint16Bytes(unix.AF_INET6),
-			WGAllowedIPAddress: ip.IP.To16(),
-			WGAllowedIPCIDR:    nlenc.Uint8Bytes(uint8(mask)),
+			NLWGAllowedIPFamily:  nlenc.Uint16Bytes(unix.AF_INET6),
+			NLWGAllowedIPAddress: ip.IP.To16(),
+			NLWGAllowedIPCIDR:    nlenc.Uint8Bytes(uint8(mask)),
 		}
 	}
 
