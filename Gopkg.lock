@@ -74,6 +74,18 @@
   revision = "80a6f93efd374ddee4e0ea862ca0085ef42eed65"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mdlayher/wireguardctrl"
+  packages = [
+    ".",
+    "internal/wgnl",
+    "internal/wgnl/internal/wgh",
+    "internal/wguser",
+    "wgtypes"
+  ]
+  revision = "89ec2561f2658b562d135a082c8795435e09b906"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -145,6 +157,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "00e74bed4d38a6efaaab5d725d95fbc6f53cb5ad57f5b3ef29f1085c950af549"
+  inputs-digest = "cc208c1a186d1feabbccb3f22704e3193d7c0b000e8bfe43092df517660c56a3"
   solver-name = "gps-cdcl"
   solver-version = 1
