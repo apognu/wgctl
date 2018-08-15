@@ -41,12 +41,6 @@
   revision = "1222aa9b09f4eb2751a418d92f53ae33ee016cd4"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/lunixbochs/struc"
-  packages = ["."]
-  revision = "02e4c2afbb2ac4bae6876f52c8273fc4cf5a4b0a"
-
-[[projects]]
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
@@ -83,7 +77,7 @@
     "internal/wguser",
     "wgtypes"
   ]
-  revision = "89ec2561f2658b562d135a082c8795435e09b906"
+  revision = "33109c0ddb4477637cf8670035cddfca2329ca02"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -140,7 +134,7 @@
     "unix",
     "windows"
   ]
-  revision = "98c5dad5d1a0e8a73845ecc8897d0bd56586511d"
+  revision = "14742f9018cd6651ec7364dc6ee08af0baaa1031"
 
 [[projects]]
   name = "gopkg.in/alecthomas/kingpin.v2"
@@ -157,6 +151,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cc208c1a186d1feabbccb3f22704e3193d7c0b000e8bfe43092df517660c56a3"
+  inputs-digest = "21b90a1bf2e634f3dd45349c9319893cb17a7bba0906bfdbdf06f06cfb32214b"
   solver-name = "gps-cdcl"
   solver-version = 1
