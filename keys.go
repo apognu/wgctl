@@ -47,3 +47,13 @@ func generatePublicKey() {
 
 	fmt.Println(base64.StdEncoding.EncodeToString(pub[:]))
 }
+
+func generatePSK() {
+	priv := new([wireguard.KeyLength]byte)
+	_, err := io.ReadFull(rand.Reader, priv[:])
+	if err != nil {
+		logrus.Fatalf("could not generate key: %s", err.Error())
+	}
+
+	fmt.Printf("%x\n", priv[:])
+}

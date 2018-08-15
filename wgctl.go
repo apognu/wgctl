@@ -50,7 +50,8 @@ func main() {
 
 	appKey := app.Command("key", "Manage WireGuard keys")
 	appKeyGenerate := appKey.Command("generate", "generate a new private key")
-	appKeyPublic := appKey.Command("public", "compute public key from a private key from stdin'")
+	appKeyPublic := appKey.Command("public", "compute public key from a private key from stdin")
+	appKeyPSK := appKey.Command("psk", "generate a preshared key to be used to authenticate an endpoint")
 
 	appVersion := app.Command("version", "Get version information.")
 
@@ -74,6 +75,8 @@ func main() {
 		generateKey()
 	case appKeyPublic.FullCommand():
 		generatePublicKey()
+	case appKeyPSK.FullCommand():
+		generatePSK()
 	}
 }
 
