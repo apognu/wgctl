@@ -72,21 +72,21 @@ func info(instance string) {
 
 	PrintSection(0, "tunnel", description, tunnelColor)
 	PrintAttr(1, "interface", dev.Name, true)
-	PrintAttr(1, "public key", dev.PublicKey, true)
+	PrintAttr(1, "public key", dev.PublicKey.String(), true)
 	PrintAttr(1, "port", strconv.Itoa(dev.ListenPort), true)
-	PrintAttr(1, "fwmark", strconv.Itoa(dev.FWMark), dev.FWMark > 0)
+	PrintAttr(1, "fwmark", strconv.Itoa(dev.FirewallMark), dev.FirewallMark > 0)
 
 	if len(dev.Peers) > 0 {
 		for _, p := range dev.Peers {
 			description := "<no description provided>"
-			if peerSpec := config.GetPeer(p.PublicKey); peerSpec != nil {
+			if peerSpec := config.GetPeer(p.PublicKey.String()); peerSpec != nil {
 				if len(peerSpec.Description) > 0 {
 					description = peerSpec.Description
 				}
 			}
 
 			PrintSection(1, "peer", description, peerColor)
-			PrintAttr(2, "public key", p.PublicKey, true)
+			PrintAttr(2, "public key", p.PublicKey.String(), true)
 
 			if p.Endpoint != nil {
 				if p.Endpoint.IP.To4() != nil {
@@ -96,20 +96,20 @@ func info(instance string) {
 				}
 			}
 
-			PrintAttr(2, "pre-shared key", p.PresharedKey, len(p.PresharedKey) > 0)
+			PrintAttr(2, "pre-shared key", FormatPSK(p.PresharedKey), p.PresharedKey != wireguard.EmptyPSK)
 
 			if len(p.AllowedIPs) > 0 {
 				ips := make([]string, len(p.AllowedIPs))
 				for idx, ip := range p.AllowedIPs {
-					ips[idx] = fmt.Sprintf("%s/%d", ip.Address, ip.CIDR)
+					ips[idx] = FormatSubnet(ip)
 				}
 
 				PrintAttr(2, "allowed ips", strings.Join(ips, ", "), true)
 			}
 
-			PrintAttr(2, "last handshake", FormatInterval(p.LastHandshake), p.LastHandshake.Year() > 1970)
-			PrintAttr(2, "keepalive", fmt.Sprintf("every %d seconds", p.KeepaliveInterval), p.KeepaliveInterval > 0)
-			PrintAttr(2, "transfer", FormatTransfer(p.RXBytes, p.TXBytes), true)
+			PrintAttr(2, "last handshake", FormatInterval(p.LastHandshakeTime), p.LastHandshakeTime.Year() > 1970)
+			PrintAttr(2, "keepalive", fmt.Sprintf("every %.0f seconds", p.PersistentKeepaliveInterval.Seconds()), p.PersistentKeepaliveInterval > 0)
+			PrintAttr(2, "transfer", FormatTransfer(p.ReceiveBytes, p.TransmitBytes), true)
 		}
 	}
 }

@@ -61,13 +61,13 @@ func AddDeviceRoutes(instance string, config *Config) {
 
 	for _, p := range config.Peers {
 		for _, ip := range p.AllowedIPS {
-			sub := net.IPNet(*ip)
+			sub := net.IPNet(ip)
 			if strings.HasSuffix(sub.String(), "/0") {
 				SetFWMark(instance, config.Interface.ListenPort)
 				SetRPFilter()
 				AddCatchAllRoute(l, sub, config)
 			} else {
-				n := net.IPNet(*ip)
+				n := net.IPNet(ip)
 				err := nl.RouteAdd(&nl.Route{Dst: &n, LinkIndex: l.Attrs().Index})
 				if err != nil {
 					logrus.Fatalf("could not add route: %s", err.Error())

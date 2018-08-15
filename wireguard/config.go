@@ -1,6 +1,7 @@
 package wireguard
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -11,13 +12,14 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 
 type IPNet net.IPNet
-type TCPAddr net.TCPAddr
+type UDPAddr net.UDPAddr
 type PrivateKeyFile []byte
 type Key []byte
 type PresharedKey []byte
@@ -39,12 +41,12 @@ type Interface struct {
 }
 
 type Peer struct {
-	Description       string       `yaml:"description"`
-	PublicKey         Key          `yaml:"public_key"`
-	PresharedKey      PresharedKey `yaml:"preshared_key"`
-	Endpoint          *TCPAddr     `yaml:"endpoint"`
-	AllowedIPS        []*IPNet     `yaml:"allowed_ips"`
-	KeepaliveInterval int          `yaml:"keepalive_interval"`
+	Description       string        `yaml:"description"`
+	PublicKey         Key           `yaml:"public_key"`
+	PresharedKey      PresharedKey  `yaml:"preshared_key"`
+	Endpoint          *UDPAddr      `yaml:"endpoint"`
+	AllowedIPS        []IPNet       `yaml:"allowed_ips"`
+	KeepaliveInterval time.Duration `yaml:"keepalive_interval"`
 }
 
 func ParseConfig(instance string) *Config {
@@ -134,7 +136,7 @@ func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not parse IP address! %s", *b)
 }
 
-func (ip *TCPAddr) UnmarshalYAML(f func(interface{}) error) error {
+func (ip *UDPAddr) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
 		return fmt.Errorf("could not parse IP address")
@@ -147,7 +149,7 @@ func (ip *TCPAddr) UnmarshalYAML(f func(interface{}) error) error {
 			return fmt.Errorf("could not parse port")
 		}
 
-		*ip = TCPAddr{IP: h, Port: p}
+		*ip = UDPAddr{IP: h, Port: p}
 		return nil
 	}
 
@@ -182,6 +184,15 @@ func (k *PrivateKeyFile) String() string {
 	return base64.StdEncoding.EncodeToString([]byte(*k))
 }
 
+func (k *PrivateKeyFile) Bytes() [KeyLength]byte {
+	buf := bytes.NewReader(*k)
+	out := new([32]byte)
+
+	io.ReadFull(buf, out[:])
+
+	return *out
+}
+
 func (key *Key) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
@@ -202,6 +213,15 @@ func (k Key) String() string {
 	return base64.StdEncoding.EncodeToString(k)
 }
 
+func (k Key) Bytes() [KeyLength]byte {
+	buf := bytes.NewReader(k)
+	out := new([32]byte)
+
+	io.ReadFull(buf, out[:])
+
+	return *out
+}
+
 func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
@@ -219,4 +239,13 @@ func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 
 func (k *PresharedKey) String() string {
 	return hex.EncodeToString([]byte(*k))
+}
+
+func (k PresharedKey) Bytes() [KeyLength]byte {
+	buf := bytes.NewReader(k)
+	out := new([32]byte)
+
+	io.ReadFull(buf, out[:])
+
+	return *out
 }

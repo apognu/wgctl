@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"time"
+
+	"github.com/mdlayher/wireguardctrl/wgtypes"
 
 	"code.cloudfoundry.org/bytefmt"
 	"github.com/fatih/color"
@@ -46,6 +49,16 @@ func PrintSection(pad int, key string, value string, color *color.Color, args ..
 	fmt.Printf("%s\n", fmt.Sprintf(value, args...))
 }
 
+func FormatPSK(psk wgtypes.Key) string {
+	return fmt.Sprintf("%x", psk[:])
+}
+
+func FormatSubnet(sub net.IPNet) string {
+	mask, _ := sub.Mask.Size()
+
+	return fmt.Sprintf("%s/%d", sub.IP, mask)
+}
+
 func FormatInterval(then time.Time) string {
 	delta := time.Since(then)
 
@@ -61,7 +74,7 @@ func FormatInterval(then time.Time) string {
 	return fmt.Sprintf("over a day ago")
 }
 
-func FormatTransfer(rx, tx int) string {
+func FormatTransfer(rx, tx int64) string {
 	return fmt.Sprintf("↓ %s ↑ %s", bytefmt.ByteSize(uint64(rx)), bytefmt.ByteSize(uint64(tx)))
 }
 

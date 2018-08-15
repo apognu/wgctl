@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -78,7 +79,7 @@ func Test_ParseFullConfig(t *testing.T) {
 
 	ip, port, _ := net.SplitHostPort("4.3.2.1:45000")
 	p, _ := strconv.Atoi(port)
-	ep := TCPAddr{IP: net.ParseIP(ip), Port: p}
+	ep := UDPAddr{IP: net.ParseIP(ip), Port: p}
 
 	assert.Equal(t, "Peer #1", c.Peers[0].Description)
 	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", c.Peers[0].PublicKey.String())
@@ -88,8 +89,8 @@ func Test_ParseFullConfig(t *testing.T) {
 
 	_, addr, _ = net.ParseCIDR("20.30.40.50/32")
 
-	assert.Equal(t, *addr, net.IPNet(*c.Peers[0].AllowedIPS[0]))
-	assert.Equal(t, 10, c.Peers[0].KeepaliveInterval)
+	assert.Equal(t, *addr, net.IPNet(c.Peers[0].AllowedIPS[0]))
+	assert.Equal(t, time.Duration(10), c.Peers[0].KeepaliveInterval)
 }
 
 func Test_ParseMinimalConfig(t *testing.T) {
@@ -107,7 +108,7 @@ func Test_ParseMinimalConfigWithPeer(t *testing.T) {
 	assert.Equal(t, true, *c.Interface.SetUpRoutes)
 	assert.Equal(t, 1, len(c.Peers))
 	assert.Equal(t, "", c.Peers[0].PresharedKey.String())
-	assert.Equal(t, 0, c.Peers[0].KeepaliveInterval)
+	assert.Equal(t, 0*time.Second, c.Peers[0].KeepaliveInterval)
 }
 
 func Test_CheckConfig(t *testing.T) {
