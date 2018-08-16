@@ -77,7 +77,7 @@
     "internal/wguser",
     "wgtypes"
   ]
-  revision = "33109c0ddb4477637cf8670035cddfca2329ca02"
+  revision = "6a528a2796082c54faa1865cd989a630de18dc52"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -125,7 +125,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["bpf"]
-  revision = "c39426892332e1bb5ec0a434a079bf82f5d30c54"
+  revision = "aaf60122140d3fcf75376d319f0554393160eb50"
 
 [[projects]]
   branch = "master"
@@ -134,7 +134,7 @@
     "unix",
     "windows"
   ]
-  revision = "14742f9018cd6651ec7364dc6ee08af0baaa1031"
+  revision = "1c9583448a9c3aa0f9a6a5241bf73c0bd8aafded"
 
 [[projects]]
   name = "gopkg.in/alecthomas/kingpin.v2"
@@ -151,6 +151,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "21b90a1bf2e634f3dd45349c9319893cb17a7bba0906bfdbdf06f06cfb32214b"
+  inputs-digest = "62826f371fafba529c8213d6fd1da5f3843301426f71a5da9db936eb59bb237a"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -7,14 +7,6 @@
   version = "2.2.6"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/mdlayher/netlink"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/mdlayher/genetlink"
-
-[[constraint]]
   name = "github.com/sirupsen/logrus"
   version = "1.0.6"
 
