@@ -1,10 +1,10 @@
 # wgctl - WireGuard control utility
 
-This is a personal project to allow WireGuard to be configured through the use of YAML files. It uses Netlink under the hood for all interaction with the system.
+This is a personal project to allow WireGuard to be configured through the use of YAML files. It uses Netlink (through [wireguardctrl](https://github.com/mdlayher/wireguardctrl)) under the hood for all interaction with the system.
 
 This tool is very opinionated and designed for my own use (working on that), it _might_ not be what you're looking for.
 
-The configuration file should look like this:
+The configuration file (which is subject to breaking changes until 1.0) should look like this:
 
 ```
 interface:
@@ -23,7 +23,7 @@ peers:
     public_key: cyfBMbaJ6kgnDYjio6xqWikvTz2HvpmvSQocRmF/ZD4=
     preshared_key: e16f1596201850fd4a63680b27f603cb64e67176159be3d8ed78a4403fdb1700
     endpoint: 1.2.3.4:42000
-    keepalive_interval: 10
+    keepalive_interval: 10s
     allowed_ips:
       - 192.168.0.0/30
       - 0.0.0.0/0
