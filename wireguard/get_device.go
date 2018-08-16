@@ -1,20 +1,27 @@
 package wireguard
 
 import (
+	"fmt"
+
 	"github.com/mdlayher/wireguardctrl"
 	"github.com/mdlayher/wireguardctrl/wgtypes"
-	"github.com/sirupsen/logrus"
+
+	nl "github.com/vishvananda/netlink"
 )
 
-func GetDevice(ifname string) (*wgtypes.Device, error) {
+func GetDevice(ifname string) (*wgtypes.Device, nl.Link, error) {
 	nlcl, err := wireguardctrl.New()
 	if err != nil {
-		logrus.Fatalf("could not create wireguard client: %s", err.Error())
+		return nil, nil, fmt.Errorf("could not create wireguard client: %s", err.Error())
 	}
 	dev, err := nlcl.Device(ifname)
 	if err != nil {
-		logrus.Fatalf("could not find device: %s", err.Error())
+		return nil, nil, fmt.Errorf("could not find device: %s", err.Error())
+	}
+	link, err := nl.LinkByName(ifname)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not find device: %s", err.Error())
 	}
 
-	return dev, nil
+	return dev, link, nil
 }

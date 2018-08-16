@@ -11,52 +11,63 @@ import (
 	nl "github.com/vishvananda/netlink"
 )
 
-func SetRPFilter() {
-	sysctls, _ := sysctl.GetPattern(`net\.ipv4\.conf\..*\.rp_filter`)
+func SetRPFilter() error {
+	sysctls, err := sysctl.GetPattern(`net\.ipv4\.conf\..*\.rp_filter`)
+	if err != nil {
+		return err
+	}
+
 	for k, v := range sysctls {
 		if v == "1" {
-			sysctl.Set(k, "2")
+			err := sysctl.Set(k, "2")
+			if err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
 }
 
-func AddDevice(instance string, config *Config) {
+func AddDevice(instance string, config *Config) error {
 	attrs := nl.NewLinkAttrs()
 	attrs.Name = instance
 
 	err := nl.LinkAdd(&WGLink{LinkAttrs: attrs})
 	if err != nil {
-		logrus.Fatalf("could not create device: %s", err.Error())
+		return fmt.Errorf("could not create device: %s", err.Error())
 	}
 
 	l, err := nl.LinkByName(instance)
 	if err != nil {
-		logrus.Fatalf("could not find recently created device: %s", err.Error())
+		return fmt.Errorf("could not find recently created device: %s", err.Error())
 	}
 
 	if config.Interface.Address != nil {
-		sn := net.IPNet(*config.Interface.Address)
-		addr, err := nl.ParseAddr(fmt.Sprintf("%s", sn.String()))
+		ip := config.Interface.Address
+		addr, err := nl.ParseAddr(fmt.Sprintf("%s", ip.String()))
 		if err != nil {
-			logrus.Fatalf("could not set device's IP address: %s", err.Error())
+			return fmt.Errorf("could not set device's IP address: %s", err.Error())
 		}
 
 		err = nl.AddrAdd(l, addr)
 		if err != nil {
-			logrus.Fatalf("could not set device's IP address: %s", err.Error())
+			return fmt.Errorf("could not set device's IP address: %s", err.Error())
 		}
 	}
 
 	err = nl.LinkSetUp(l)
 	if err != nil {
-		logrus.Fatalf("could bring up device: %s", err.Error())
+		return fmt.Errorf("could bring up device: %s", err.Error())
 	}
+
+	return nil
 }
 
-func AddDeviceRoutes(instance string, config *Config) {
+func AddDeviceRoutes(instance string, config *Config) error {
 	l, err := nl.LinkByName(instance)
 	if err != nil {
-		logrus.Fatalf("could not find recently created device: %s", err.Error())
+		return fmt.Errorf("could not find recently created device: %s", err.Error())
 	}
 
 	for _, p := range config.Peers {
@@ -70,11 +81,13 @@ func AddDeviceRoutes(instance string, config *Config) {
 				n := net.IPNet(ip)
 				err := nl.RouteAdd(&nl.Route{Dst: &n, LinkIndex: l.Attrs().Index})
 				if err != nil {
-					logrus.Fatalf("could not add route: %s", err.Error())
+					return fmt.Errorf("could not add route: %s", err.Error())
 				}
 			}
 		}
 	}
+
+	return nil
 }
 
 func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) {
@@ -106,15 +119,15 @@ func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) {
 	}
 }
 
-func DeleteDevice(instance string) {
+func DeleteDevice(instance string) error {
 	l, err := nl.LinkByName(instance)
 	if err != nil {
-		logrus.Fatalf("could not delete device: %s", err.Error())
+		fmt.Errorf("could not delete device: %s", err.Error())
 	}
 
 	err = nl.LinkDel(l)
 	if err != nil {
-		logrus.Fatalf("could not delete device: %s", err.Error())
+		fmt.Errorf("could not delete device: %s", err.Error())
 	}
 
 	rule1 := nl.NewRule()
@@ -124,4 +137,6 @@ func DeleteDevice(instance string) {
 
 	nl.RuleDel(rule1)
 	nl.RuleDel(&rule2)
+
+	return nil
 }

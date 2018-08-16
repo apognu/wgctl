@@ -1,6 +1,7 @@
 package wireguard
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/mdlayher/wireguardctrl"
@@ -19,10 +20,10 @@ func SetFWMark(instance string, fwmark int) error {
 	return err
 }
 
-func ConfigureDevice(instance string, config *Config) {
+func ConfigureDevice(instance string, config *Config) error {
 	nlcl, err := wireguardctrl.New()
 	if err != nil {
-		logrus.Fatalf("could not create wireguard client: %s", err.Error())
+		return fmt.Errorf("could not create wireguard client: %s", err.Error())
 	}
 
 	priv := wgtypes.Key(config.Interface.PrivateKey.Bytes())
@@ -42,7 +43,12 @@ func ConfigureDevice(instance string, config *Config) {
 		c.Peers = peers
 	}
 
-	nlcl.ConfigureDevice(instance, c)
+	err = nlcl.ConfigureDevice(instance, c)
+	if err != nil {
+		return fmt.Errorf("could not configure wireguard client: %s", err.Error())
+	}
+
+	return nil
 }
 
 func ParsePeer(p *Peer) wgtypes.PeerConfig {

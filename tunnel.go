@@ -14,10 +14,19 @@ func start(instance string, noRoutes bool) {
 	config := wireguard.ParseConfig(instance)
 	instance = wireguard.GetInstanceFromArg(instance)
 
-	wireguard.AddDevice(instance, config)
-	wireguard.ConfigureDevice(instance, config)
+	err := wireguard.AddDevice(instance, config)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	err = wireguard.ConfigureDevice(instance, config)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 	if !noRoutes && *config.Interface.SetUpRoutes {
-		wireguard.AddDeviceRoutes(instance, config)
+		err = wireguard.AddDeviceRoutes(instance, config)
+		if err != nil {
+			logrus.Fatal(err)
+		}
 	}
 
 	Up("tunnel '%s' has been brought up", instance)

@@ -66,10 +66,11 @@ func Test_ParseFullConfig(t *testing.T) {
 	createPKey(t)
 	c := ParseConfigReader(bytes.NewReader([]byte(fullConfigYAML)))
 
-	_, addr, _ := net.ParseCIDR("1.2.3.4/24")
+	addr, sub, _ := net.ParseCIDR("1.2.3.4/24")
 
 	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Interface.Description)
-	assert.Equal(t, *addr, net.IPNet(*c.Interface.Address))
+	assert.Equal(t, addr, c.Interface.Address.IP)
+	assert.Equal(t, 24, c.Interface.Address.Mask)
 	assert.Equal(t, 23456, c.Interface.ListenPort)
 	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", c.Interface.PrivateKey.String())
 	assert.Equal(t, 12345, c.Interface.FWMark)
@@ -87,9 +88,9 @@ func Test_ParseFullConfig(t *testing.T) {
 	assert.Equal(t, ep, *c.Peers[0].Endpoint)
 	assert.Equal(t, 2, len(c.Peers[0].AllowedIPS))
 
-	_, addr, _ = net.ParseCIDR("20.30.40.50/32")
+	_, sub, _ = net.ParseCIDR("20.30.40.50/32")
 
-	assert.Equal(t, *addr, net.IPNet(c.Peers[0].AllowedIPS[0]))
+	assert.Equal(t, IPNet(*sub), c.Peers[0].AllowedIPS[0])
 	assert.Equal(t, time.Duration(10), c.Peers[0].KeepaliveInterval)
 }
 
@@ -123,8 +124,7 @@ func Test_CheckConfig(t *testing.T) {
 	c = &Config{Interface: Interface{ListenPort: 10000}}
 	assert.NotEqual(nil, c.Check(), "")
 
-	_, addr, _ := net.ParseCIDR("1.2.3.4/24")
-	ipnet := IPNet(*addr)
+	ipnet := IPMask{IP: net.ParseIP("1.2.3.4"), Mask: 24}
 	c = &Config{Interface: Interface{Address: &ipnet}}
 	assert.NotEqual(nil, c.Check(), "")
 

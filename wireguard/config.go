@@ -26,6 +26,15 @@ type PrivateKeyFile []byte
 type Key []byte
 type PresharedKey []byte
 
+type IPMask struct {
+	IP   net.IP
+	Mask int
+}
+
+func (ip IPMask) String() string {
+	return fmt.Sprintf("%s/%d", ip.IP.String(), ip.Mask)
+}
+
 type Config struct {
 	Interface `yaml:"interface"`
 	Peers     []*Peer `yaml:"peers"`
@@ -33,7 +42,7 @@ type Config struct {
 
 type Interface struct {
 	Description string         `yaml:"description"`
-	Address     *IPNet         `yaml:"address"`
+	Address     *IPMask        `yaml:"address"`
 	ListenPort  int            `yaml:"listen_port"`
 	PrivateKey  PrivateKeyFile `yaml:"private_key"`
 	FWMark      int            `yaml:"fwmark"`
@@ -122,6 +131,24 @@ func GetInstanceFromArg(path string) string {
 		return strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	}
 	return path
+}
+
+func (ip *IPMask) UnmarshalYAML(f func(interface{}) error) error {
+	b := new(string)
+	if err := f(b); err != nil {
+		return fmt.Errorf("could not parse IP address ")
+	}
+
+	if addr, cidr, err := net.ParseCIDR(*b); err == nil {
+		mask, _ := cidr.Mask.Size()
+		*ip = IPMask{
+			IP:   addr,
+			Mask: mask,
+		}
+		return nil
+	}
+
+	return fmt.Errorf("could not parse IP address! %s", *b)
 }
 
 func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
