@@ -1,5 +1,7 @@
 # wgctl - WireGuard control utility
 
+[![](https://travis-ci.org/apognu/wgctl.svg?branch=master)](https://travis-ci.org/apognu/wgctl)
+
 This is a personal project to allow WireGuard to be configured through the use of YAML files. It uses Netlink (through [wireguardctrl](https://github.com/mdlayher/wireguardctrl)) under the hood for all interaction with the system.
 
 This tool is very opinionated and designed for my own use (working on that), it _might_ not be what you're looking for.
