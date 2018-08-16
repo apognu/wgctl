@@ -11,10 +11,13 @@ import (
 )
 
 func start(instance string, noRoutes bool) {
-	config := wireguard.ParseConfig(instance)
+	config, err := wireguard.ParseConfig(instance)
+	if err != nil {
+		logrus.Fatalf("could not parse configuration: %s", err.Error())
+	}
 	instance = wireguard.GetInstanceFromArg(instance)
 
-	err := wireguard.AddDevice(instance, config)
+	err = wireguard.AddDevice(instance, config)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -39,7 +42,10 @@ func start(instance string, noRoutes bool) {
 }
 
 func stop(instance string) {
-	config := wireguard.ParseConfig(instance)
+	config, err := wireguard.ParseConfig(instance)
+	if err != nil {
+		logrus.Fatalf("could not parse configuration: %s", err.Error())
+	}
 	instance = wireguard.GetInstanceFromArg(instance)
 
 	wireguard.DeleteDevice(instance)

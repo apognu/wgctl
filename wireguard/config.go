@@ -16,7 +16,6 @@ import (
 
 	"github.com/mdlayher/wireguardctrl/wgtypes"
 
-	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -60,7 +59,7 @@ type Peer struct {
 	KeepaliveInterval time.Duration `yaml:"keepalive_interval"`
 }
 
-func ParseConfig(instance string) *Config {
+func ParseConfig(instance string) (*Config, error) {
 	path := fmt.Sprintf("%s/%s.yml", GetConfigPath(), instance)
 	if _, err := os.Stat(instance); err == nil {
 		path = instance
@@ -68,25 +67,25 @@ func ParseConfig(instance string) *Config {
 
 	config, err := os.Open(path)
 	if err != nil {
-		logrus.Fatalf("could not read configuration file: %s", err.Error())
+		return nil, fmt.Errorf("could not read configuration file: %s", err.Error())
 	}
 
 	return ParseConfigReader(config)
 }
 
-func ParseConfigReader(config io.Reader) *Config {
+func ParseConfigReader(config io.Reader) (*Config, error) {
 	c := new(Config)
 	err := yaml.NewDecoder(config).Decode(c)
 	if err != nil {
-		logrus.Fatalf("could not parse configuration file: %s", err.Error())
+		return nil, fmt.Errorf("could not parse configuration file: %s", err.Error())
 	}
 
 	err = c.Check()
 	if err != nil {
-		logrus.Fatalf("configuration check failed: %s", err.Error())
+		return nil, fmt.Errorf("configuration check failed: %s", err.Error())
 	}
 
-	return c
+	return c, nil
 }
 
 func (c *Config) Check() error {

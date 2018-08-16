@@ -46,6 +46,24 @@ peers:
 $ go get -u github.com/apognu/wgctl
 ```
 
+or
+
+```
+$ git clone https://github.com/apognu/wgctl.git && cd wgctl
+$ dep ensure
+$ go build .
+```
+
+### Testing
+
+You can run the tests for this project, as root (since we are testing netlink communication and device creation). Keep in mind that this will modify properties on your live system, use with caution.
+
+Test creation is under way, we have a lot left to do.
+
+```
+$ sudo -E go test ./... 
+```
+
 ## Usage
 
 ```

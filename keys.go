@@ -2,27 +2,19 @@ package main
 
 import (
 	"bufio"
-	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
+	"github.com/apognu/wgctl/wireguard"
 	"github.com/mdlayher/wireguardctrl/wgtypes"
 
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/curve25519"
 )
 
 func generateKey() {
-	priv := new([wgtypes.KeyLen]byte)
-	_, err := io.ReadFull(rand.Reader, priv[:])
-	if err != nil {
-		logrus.Fatalf("could not generate key: %s", err.Error())
-	}
-
-	fmt.Println(base64.StdEncoding.EncodeToString(priv[:]))
+	fmt.Println(wireguard.GeneratePrivateKey())
 }
 
 func generatePublicKey() {
@@ -37,23 +29,9 @@ func generatePublicKey() {
 		logrus.Fatalf("the key read from stdin is of an invalid size")
 	}
 
-	priv := new([wgtypes.KeyLen]byte)
-	pub := new([wgtypes.KeyLen]byte)
-	for idx, b := range b {
-		priv[idx] = b
-	}
-
-	curve25519.ScalarBaseMult(pub, priv)
-
-	fmt.Println(base64.StdEncoding.EncodeToString(pub[:]))
+	fmt.Println(wireguard.ComputePublicKey(b))
 }
 
 func generatePSK() {
-	priv := new([wgtypes.KeyLen]byte)
-	_, err := io.ReadFull(rand.Reader, priv[:])
-	if err != nil {
-		logrus.Fatalf("could not generate key: %s", err.Error())
-	}
-
-	fmt.Printf("%x\n", priv[:])
+	fmt.Println(wireguard.GeneratePSK())
 }

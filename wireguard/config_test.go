@@ -64,10 +64,11 @@ func createPKey(t *testing.T) {
 
 func Test_ParseFullConfig(t *testing.T) {
 	createPKey(t)
-	c := ParseConfigReader(bytes.NewReader([]byte(fullConfigYAML)))
+	c, err := ParseConfigReader(bytes.NewReader([]byte(fullConfigYAML)))
 
 	addr, sub, _ := net.ParseCIDR("1.2.3.4/24")
 
+	assert.Nil(t, err)
 	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Interface.Description)
 	assert.Equal(t, addr, c.Interface.Address.IP)
 	assert.Equal(t, 24, c.Interface.Address.Mask)
@@ -96,16 +97,18 @@ func Test_ParseFullConfig(t *testing.T) {
 
 func Test_ParseMinimalConfig(t *testing.T) {
 	createPKey(t)
-	c := ParseConfigReader(bytes.NewReader([]byte(minimalConfigYAML)))
+	c, err := ParseConfigReader(bytes.NewReader([]byte(minimalConfigYAML)))
 
+	assert.Nil(t, err)
 	assert.Equal(t, true, *c.Interface.SetUpRoutes)
 	assert.Equal(t, 0, len(c.Peers))
 }
 
 func Test_ParseMinimalConfigWithPeer(t *testing.T) {
 	createPKey(t)
-	c := ParseConfigReader(bytes.NewReader([]byte(minimalConfigWithPeerYAML)))
+	c, err := ParseConfigReader(bytes.NewReader([]byte(minimalConfigWithPeerYAML)))
 
+	assert.Nil(t, err)
 	assert.Equal(t, true, *c.Interface.SetUpRoutes)
 	assert.Equal(t, 1, len(c.Peers))
 	assert.Equal(t, "", c.Peers[0].PresharedKey.String())
@@ -137,8 +140,9 @@ func Test_CheckConfig(t *testing.T) {
 
 func Test_GetPeer(t *testing.T) {
 	createPKey(t)
-	c := ParseConfigReader(bytes.NewReader([]byte(fullConfigYAML)))
+	c, err := ParseConfigReader(bytes.NewReader([]byte(fullConfigYAML)))
 
+	assert.Nil(t, err)
 	assert.Nil(t, c.GetPeer("loremipsum"))
 
 	p := c.GetPeer("7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=")

@@ -59,10 +59,13 @@ func statusAll(short bool) {
 }
 
 func info(instance string) {
-	config := wireguard.ParseConfig(instance)
+	config, err := wireguard.ParseConfig(instance)
+	if err != nil {
+		logrus.Fatalf("could not parse configuration: %s", err.Error())
+	}
 	dev, _, err := wireguard.GetDevice(instance)
 	if err != nil {
-		logrus.Fatalf("could not retrieve device information: %s", err)
+		logrus.Fatalf("could not retrieve device information: %s", err.Error())
 	}
 
 	description := "<no description provided>"
