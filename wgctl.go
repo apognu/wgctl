@@ -4,10 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/apognu/wgctl/wireguard"
-	"github.com/sirupsen/logrus"
-
-	nl "github.com/vishvananda/netlink"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -20,62 +16,56 @@ var (
 )
 
 func main() {
-	f, err := nl.GenlFamilyGet("wireguard")
-	if err != nil {
-		logrus.Fatalf("could not find WireGuard netlink family on your kernel, is the WireGuard module loaded?")
-	}
-	wireguard.NetlinkFamily = f.ID
+	kp := kingpin.New("wgctl", "WireGuard control plane helper")
+	kp.HelpFlag.Short('h')
+	kp.UsageTemplate(kingpin.CompactUsageTemplate)
 
-	app := kingpin.New("wgctl", "WireGuard control plane helper")
-	app.HelpFlag.Short('h')
-	app.UsageTemplate(kingpin.CompactUsageTemplate)
+	kpStart := kp.Command("start", "Bring up a tunnel.").Alias("up").PreAction(requireRoot)
+	kpStartInstance := kpStart.Arg("instance", instanceDesc).Required().String()
+	kpStartNoRoutes := kpStart.Flag("no-routes", "do not set up routing").Default("false").Bool()
 
-	appStart := app.Command("start", "Bring up a tunnel.").Alias("up").PreAction(requireRoot)
-	appStartInstance := appStart.Arg("instance", instanceDesc).Required().String()
-	appStartNoRoutes := appStart.Flag("no-routes", "do not set up routing").Default("false").Bool()
+	kpStop := kp.Command("stop", "Tear down a tunnel.").Alias("down").PreAction(requireRoot)
+	kpStopInstance := kpStop.Arg("instance", instanceDesc).Required().String()
 
-	appStop := app.Command("stop", "Tear down a tunnel.").Alias("down").PreAction(requireRoot)
-	appStopInstance := appStop.Arg("instance", instanceDesc).Required().String()
+	kpRestart := kp.Command("restart", "Restart a tunnel from its configuration.").PreAction(requireRoot)
+	kpRestartInstance := kpRestart.Arg("instance", instanceDesc).Required().String()
+	kpRestartNoRoutes := kpRestart.Flag("no-routes", "do not set up routing").Default("false").Bool()
 
-	appRestart := app.Command("restart", "Restart a tunnel from its configuration.").PreAction(requireRoot)
-	appRestartInstance := appRestart.Arg("instance", instanceDesc).Required().String()
-	appRestartNoRoutes := appRestart.Flag("no-routes", "do not set up routing").Default("false").Bool()
+	kpStatus := kp.Command("status", "Show tunnel status.").PreAction(requireRoot)
+	kpStatusInstance := kpStatus.Arg("instance", instanceDesc).String()
+	kpStatusShort := kpStatus.Flag("short", "only display the names of active tunnels").Short('s').Default("false").Bool()
 
-	appStatus := app.Command("status", "Show tunnel status.").PreAction(requireRoot)
-	appStatusInstance := appStatus.Arg("instance", instanceDesc).String()
-	appStatusShort := appStatus.Flag("short", "only display the names of active tunnels").Short('s').Default("false").Bool()
+	kpInfo := kp.Command("info", "Get tunnel information.").PreAction(requireRoot)
+	kpInfoInstance := kpInfo.Arg("instance", "name of your WireGuard configuration").Required().String()
 
-	appInfo := app.Command("info", "Get tunnel information.").PreAction(requireRoot)
-	appInfoInstance := appInfo.Arg("instance", "name of your WireGuard configuration").Required().String()
+	kpKey := kp.Command("key", "Manage WireGuard keys")
+	kpKeyGenerate := kpKey.Command("private", "generate a new private key")
+	kpKeyPublic := kpKey.Command("public", "compute public key from a private key from stdin")
+	kpKeyPSK := kpKey.Command("psk", "generate a preshared key to be used to authenticate an endpoint")
 
-	appKey := app.Command("key", "Manage WireGuard keys")
-	appKeyGenerate := appKey.Command("generate", "generate a new private key")
-	appKeyPublic := appKey.Command("public", "compute public key from a private key from stdin")
-	appKeyPSK := appKey.Command("psk", "generate a preshared key to be used to authenticate an endpoint")
+	kpVersion := kp.Command("version", "Get version information.")
 
-	appVersion := app.Command("version", "Get version information.")
-
-	args := kingpin.MustParse(app.Parse(os.Args[1:]))
+	args := kingpin.MustParse(kp.Parse(os.Args[1:]))
 
 	switch args {
-	case appStart.FullCommand():
-		start(*appStartInstance, *appStartNoRoutes)
-	case appStop.FullCommand():
-		stop(*appStopInstance)
-	case appRestart.FullCommand():
-		stop(*appRestartInstance)
-		start(*appRestartInstance, *appRestartNoRoutes)
-	case appStatus.FullCommand():
-		status(*appStatusInstance, *appStatusShort, false)
-	case appInfo.FullCommand():
-		info(*appInfoInstance)
-	case appVersion.FullCommand():
+	case kpStart.FullCommand():
+		start(*kpStartInstance, *kpStartNoRoutes)
+	case kpStop.FullCommand():
+		stop(*kpStopInstance)
+	case kpRestart.FullCommand():
+		stop(*kpRestartInstance)
+		start(*kpRestartInstance, *kpRestartNoRoutes)
+	case kpStatus.FullCommand():
+		status(*kpStatusInstance, *kpStatusShort, false)
+	case kpInfo.FullCommand():
+		info(*kpInfoInstance)
+	case kpVersion.FullCommand():
 		version()
-	case appKeyGenerate.FullCommand():
+	case kpKeyGenerate.FullCommand():
 		generateKey()
-	case appKeyPublic.FullCommand():
+	case kpKeyPublic.FullCommand():
 		generatePublicKey()
-	case appKeyPSK.FullCommand():
+	case kpKeyPSK.FullCommand():
 		generatePSK()
 	}
 }

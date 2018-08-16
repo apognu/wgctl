@@ -9,14 +9,14 @@ import (
 	"os"
 	"strings"
 
-	"github.com/apognu/wgctl/wireguard"
+	"github.com/mdlayher/wireguardctrl/wgtypes"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/curve25519"
 )
 
 func generateKey() {
-	priv := new([wireguard.KeyLength]byte)
+	priv := new([wgtypes.KeyLen]byte)
 	_, err := io.ReadFull(rand.Reader, priv[:])
 	if err != nil {
 		logrus.Fatalf("could not generate key: %s", err.Error())
@@ -33,12 +33,12 @@ func generatePublicKey() {
 	if err != nil {
 		logrus.Fatalf("could not read private key from stdin: %s", err.Error())
 	}
-	if len(b) != wireguard.KeyLength {
+	if len(b) != wgtypes.KeyLen {
 		logrus.Fatalf("the key read from stdin is of an invalid size")
 	}
 
-	priv := new([wireguard.KeyLength]byte)
-	pub := new([wireguard.KeyLength]byte)
+	priv := new([wgtypes.KeyLen]byte)
+	pub := new([wgtypes.KeyLen]byte)
 	for idx, b := range b {
 		priv[idx] = b
 	}
@@ -49,7 +49,7 @@ func generatePublicKey() {
 }
 
 func generatePSK() {
-	priv := new([wireguard.KeyLength]byte)
+	priv := new([wgtypes.KeyLen]byte)
 	_, err := io.ReadFull(rand.Reader, priv[:])
 	if err != nil {
 		logrus.Fatalf("could not generate key: %s", err.Error())

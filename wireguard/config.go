@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mdlayher/wireguardctrl/wgtypes"
+
 	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -83,7 +85,7 @@ func (c *Config) Check() error {
 		v := true
 		c.Interface.SetUpRoutes = &v
 	}
-	if len(c.Interface.PrivateKey) != KeyLength {
+	if len(c.Interface.PrivateKey) != wgtypes.KeyLen {
 		return fmt.Errorf("'private_key' must be provided")
 	}
 	if c.Interface.ListenPort == 0 {
@@ -91,7 +93,7 @@ func (c *Config) Check() error {
 	}
 
 	for _, p := range c.Peers {
-		if len(p.PublicKey) != KeyLength {
+		if len(p.PublicKey) != wgtypes.KeyLen {
 			return fmt.Errorf("peer's 'public_key' must be provided")
 		}
 	}
@@ -169,7 +171,7 @@ func (key *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 
 		b64key := strings.TrimSpace(string(k))
 		k, err = base64.StdEncoding.DecodeString(b64key)
-		if err != nil || len(k) != KeyLength {
+		if err != nil || len(k) != wgtypes.KeyLen {
 			return fmt.Errorf("key is of invalid size")
 		}
 
@@ -184,7 +186,7 @@ func (k *PrivateKeyFile) String() string {
 	return base64.StdEncoding.EncodeToString([]byte(*k))
 }
 
-func (k *PrivateKeyFile) Bytes() [KeyLength]byte {
+func (k *PrivateKeyFile) Bytes() [wgtypes.KeyLen]byte {
 	buf := bytes.NewReader(*k)
 	out := new([32]byte)
 
@@ -201,7 +203,7 @@ func (key *Key) UnmarshalYAML(f func(interface{}) error) error {
 
 	b64key := strings.TrimSpace(*b)
 	k, err := base64.StdEncoding.DecodeString(b64key)
-	if err != nil || len(k) != KeyLength {
+	if err != nil || len(k) != wgtypes.KeyLen {
 		return fmt.Errorf("key is of invalid size")
 	}
 
@@ -213,7 +215,7 @@ func (k Key) String() string {
 	return base64.StdEncoding.EncodeToString(k)
 }
 
-func (k Key) Bytes() [KeyLength]byte {
+func (k Key) Bytes() [wgtypes.KeyLen]byte {
 	buf := bytes.NewReader(k)
 	out := new([32]byte)
 
@@ -229,7 +231,7 @@ func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 	}
 
 	k, err := hex.DecodeString(*b)
-	if err != nil || len(k) != KeyLength {
+	if err != nil || len(k) != wgtypes.KeyLen {
 		return fmt.Errorf("key is of invalid size")
 	}
 
@@ -241,7 +243,7 @@ func (k *PresharedKey) String() string {
 	return hex.EncodeToString([]byte(*k))
 }
 
-func (k PresharedKey) Bytes() [KeyLength]byte {
+func (k PresharedKey) Bytes() [wgtypes.KeyLen]byte {
 	buf := bytes.NewReader(k)
 	out := new([32]byte)
 

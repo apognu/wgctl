@@ -5,29 +5,7 @@ import (
 )
 
 const (
-	NetlinkName    = "wireguard"
-	NetlinkVersion = 1
-
-	CommandGetDevice = 0
-	CommandSetDevice = 1
-
-	KeyLength = 32
-)
-
-var (
-	NetlinkFamily uint16 = 0
-)
-
-const (
-	_ = iota
-	_
-	NLWGDeviceName
-	NLWGDevicePrivateKey
-	NLWGDevicePublicKey
-	_
-	NLWGDeviceListenPort
-	NLWGDeviceFWMark
-	NLWGDevicePeers
+	NetlinkName = "wireguard"
 )
 
 var EmptyPSK = [32]byte{
