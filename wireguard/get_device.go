@@ -11,7 +11,7 @@ func GetDevice(ifname string) (*wgtypes.Device, error) {
 	if err != nil {
 		logrus.Fatalf("could not create wireguard client: %s", err.Error())
 	}
-	dev, err := nlcl.Device("gcp")
+	dev, err := nlcl.Device(ifname)
 	if err != nil {
 		logrus.Fatalf("could not find device: %s", err.Error())
 	}

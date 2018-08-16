@@ -3,27 +3,20 @@ package wireguard
 import (
 	"net"
 
-	"github.com/mdlayher/netlink"
-	"github.com/mdlayher/netlink/nlenc"
 	"github.com/mdlayher/wireguardctrl"
 	"github.com/mdlayher/wireguardctrl/wgtypes"
 	"github.com/sirupsen/logrus"
 )
 
 func SetFWMark(instance string, fwmark int) error {
-	flags := netlink.HeaderFlagsRequest | netlink.HeaderFlagsAcknowledge
-
-	attrs := map[uint16][]byte{
-		NLWGDeviceName:   nlenc.Bytes(instance),
-		NLWGDeviceFWMark: nlenc.Uint32Bytes(uint32(fwmark)),
-	}
-
-	_, err := Request(CommandSetDevice, flags, attrs)
+	nlcl, err := wireguardctrl.New()
 	if err != nil {
-		return err
+		logrus.Fatalf("could not create wireguard client: %s", err.Error())
 	}
 
-	return nil
+	err = nlcl.ConfigureDevice(instance, wgtypes.Config{FirewallMark: &fwmark})
+
+	return err
 }
 
 func ConfigureDevice(instance string, config *Config) {
