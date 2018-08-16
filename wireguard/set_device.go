@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// SetFWMark changes the firewall mark on a specified WireGuard device
 func SetFWMark(instance string, fwmark int) error {
 	nlcl, err := wireguardctrl.New()
 	if err != nil {
@@ -20,6 +21,7 @@ func SetFWMark(instance string, fwmark int) error {
 	return err
 }
 
+// ConfigureDevice sets all WireGuard parameter in a Config
 func ConfigureDevice(instance string, config *Config) error {
 	nlcl, err := wireguardctrl.New()
 	if err != nil {
@@ -51,6 +53,7 @@ func ConfigureDevice(instance string, config *Config) error {
 	return nil
 }
 
+// ParsePeer creates a Netlink-compatible view of a peer
 func ParsePeer(p *Peer) wgtypes.PeerConfig {
 	peer := wgtypes.PeerConfig{
 		PublicKey: wgtypes.Key(p.PublicKey.Bytes()),

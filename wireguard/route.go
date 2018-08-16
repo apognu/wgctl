@@ -11,6 +11,7 @@ import (
 	nl "github.com/vishvananda/netlink"
 )
 
+// SetRPFilter sets the rp_filter of all interaces that are set to 1, to 2
 func SetRPFilter() error {
 	sysctls, err := sysctl.GetPattern(`net\.ipv4\.conf\..*\.rp_filter`)
 	if err != nil {
@@ -29,6 +30,7 @@ func SetRPFilter() error {
 	return nil
 }
 
+// AddDevice adds a new WireGuard link and assigns the given IP address
 func AddDevice(instance string, config *Config) error {
 	attrs := nl.NewLinkAttrs()
 	attrs.Name = instance
@@ -64,6 +66,7 @@ func AddDevice(instance string, config *Config) error {
 	return nil
 }
 
+// AddDeviceRoutes sets up the routes for all AllowedIPs in the peer configuration
 func AddDeviceRoutes(instance string, config *Config) error {
 	l, err := nl.LinkByName(instance)
 	if err != nil {
@@ -90,6 +93,7 @@ func AddDeviceRoutes(instance string, config *Config) error {
 	return nil
 }
 
+// AddCatchAllRoute sets up routing to forward all traffic
 func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) {
 	r := &nl.Route{Dst: &dst, LinkIndex: l.Attrs().Index, Table: config.Interface.ListenPort}
 	err := nl.RouteAdd(r)
@@ -119,15 +123,16 @@ func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) {
 	}
 }
 
+// DeleteDevice deleted a WireGuard device and all routes and rules linked to it'
 func DeleteDevice(instance string) error {
 	l, err := nl.LinkByName(instance)
 	if err != nil {
-		fmt.Errorf("could not delete device: %s", err.Error())
+		return fmt.Errorf("could not delete device: %s", err.Error())
 	}
 
 	err = nl.LinkDel(l)
 	if err != nil {
-		fmt.Errorf("could not delete device: %s", err.Error())
+		return fmt.Errorf("could not delete device: %s", err.Error())
 	}
 
 	rule1 := nl.NewRule()

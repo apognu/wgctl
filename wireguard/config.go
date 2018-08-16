@@ -19,26 +19,39 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+// IPNet is an unmarshalable version of net.IPNet
 type IPNet net.IPNet
+
+// UDPAddr is an unmarshalable version of net.UDPAddr
 type UDPAddr net.UDPAddr
+
+// PrivateKeyFile is an unmarshalable file path
 type PrivateKeyFile []byte
+
+// Key is an unmarshalable ED25519 key
 type Key []byte
+
+// PresharedKey is un unmarshable preshared key
 type PresharedKey []byte
 
+// IPMask represents an IP address and its subnet mask, to be assigned to an interface
 type IPMask struct {
 	IP   net.IP
 	Mask int
 }
 
+// String returns the classic CIDR representation of an IPMask (e.g. 192.168.0.1/24)
 func (ip IPMask) String() string {
 	return fmt.Sprintf("%s/%d", ip.IP.String(), ip.Mask)
 }
 
+// Config represents a YAML-encodable configuration for a WireGuard tunnel
 type Config struct {
 	Interface `yaml:"interface"`
 	Peers     []*Peer `yaml:"peers"`
 }
 
+// Interface represents a YAML-encodable configuration for a WireGuard interface
 type Interface struct {
 	Description string         `yaml:"description"`
 	Address     *IPMask        `yaml:"address"`
@@ -50,6 +63,7 @@ type Interface struct {
 	SetUpRoutes *bool          `yaml:"routes"`
 }
 
+// Peer represents a YAML-encodable configuration for a WireGuard peer
 type Peer struct {
 	Description       string        `yaml:"description"`
 	PublicKey         Key           `yaml:"public_key"`
@@ -59,6 +73,7 @@ type Peer struct {
 	KeepaliveInterval time.Duration `yaml:"keepalive_interval"`
 }
 
+// ParseConfig unmarshals a Config from a YAML string
 func ParseConfig(instance string) (*Config, error) {
 	path := fmt.Sprintf("%s/%s.yml", GetConfigPath(), instance)
 	if _, err := os.Stat(instance); err == nil {
@@ -73,6 +88,7 @@ func ParseConfig(instance string) (*Config, error) {
 	return ParseConfigReader(config)
 }
 
+// ParseConfigReader unmarshals a Config from an io.Reader mapped to a YAML file
 func ParseConfigReader(config io.Reader) (*Config, error) {
 	c := new(Config)
 	err := yaml.NewDecoder(config).Decode(c)
@@ -88,6 +104,8 @@ func ParseConfigReader(config io.Reader) (*Config, error) {
 	return c, nil
 }
 
+// Check verifies that all mandatory config directive have been given for a Config
+// It also sets default values for some fields
 func (c *Config) Check() error {
 	if c.Interface.SetUpRoutes == nil {
 		v := true
@@ -109,6 +127,7 @@ func (c *Config) Check() error {
 	return nil
 }
 
+// GetPeer finds a peer in a Config from its public key string representation
 func (c *Config) GetPeer(publicKey string) *Peer {
 	for _, p := range c.Peers {
 		if p.PublicKey.String() == publicKey {
@@ -118,6 +137,8 @@ func (c *Config) GetPeer(publicKey string) *Peer {
 	return nil
 }
 
+// GetConfigPath returns the directory where the configuration files should be looked for
+// This path can be overriden by setting the WGCTL_CONFIG_PATH environment variable
 func GetConfigPath() string {
 	if len(strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))) > 0 {
 		return strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))
@@ -125,6 +146,7 @@ func GetConfigPath() string {
 	return "/etc/wireguard"
 }
 
+// GetInstanceFromArg returns the normalized name of a WireGuard tunnel instance (and interface)
 func GetInstanceFromArg(path string) string {
 	if _, err := os.Stat(path); err == nil {
 		return strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
@@ -132,6 +154,7 @@ func GetInstanceFromArg(path string) string {
 	return path
 }
 
+// UnmarshalYAML returns an IPMask from a YAML string
 func (ip *IPMask) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
@@ -150,6 +173,7 @@ func (ip *IPMask) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not parse IP address! %s", *b)
 }
 
+// UnmarshalYAML returns an IPNet from a YAML string
 func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
@@ -164,6 +188,7 @@ func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not parse IP address! %s", *b)
 }
 
+// UnmarshalYAML returns an UDPAddr from a YAML string
 func (ip *UDPAddr) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
@@ -184,34 +209,37 @@ func (ip *UDPAddr) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not parse IP address: %s", *b)
 }
 
-func (key *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
+// UnmarshalYAML returns an private key from a YAML file path
+func (k *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
 		return fmt.Errorf("could not parse private key path")
 	}
 
-	if k, err := ioutil.ReadFile(*b); err == nil {
+	if key, err := ioutil.ReadFile(*b); err == nil {
 		if err != nil {
 			return fmt.Errorf("could not read private key")
 		}
 
-		b64key := strings.TrimSpace(string(k))
-		k, err = base64.StdEncoding.DecodeString(b64key)
-		if err != nil || len(k) != wgtypes.KeyLen {
+		b64key := strings.TrimSpace(string(key))
+		key, err = base64.StdEncoding.DecodeString(b64key)
+		if err != nil || len(key) != wgtypes.KeyLen {
 			return fmt.Errorf("key is of invalid size")
 		}
 
-		*key = k
+		*k = key
 		return nil
 	}
 
 	return fmt.Errorf("could not open private key file")
 }
 
+// String returns the string repsentation of a private key
 func (k *PrivateKeyFile) String() string {
 	return base64.StdEncoding.EncodeToString([]byte(*k))
 }
 
+// Bytes returns the byte representation of a private key
 func (k *PrivateKeyFile) Bytes() [wgtypes.KeyLen]byte {
 	buf := bytes.NewReader(*k)
 	out := new([32]byte)
@@ -221,28 +249,31 @@ func (k *PrivateKeyFile) Bytes() [wgtypes.KeyLen]byte {
 	return *out
 }
 
-func (key *Key) UnmarshalYAML(f func(interface{}) error) error {
+// UnmarshalYAML returns a Key from a YAML string
+func (k *Key) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
 		return fmt.Errorf("could not parse private key path")
 	}
 
 	b64key := strings.TrimSpace(*b)
-	k, err := base64.StdEncoding.DecodeString(b64key)
-	if err != nil || len(k) != wgtypes.KeyLen {
+	key, err := base64.StdEncoding.DecodeString(b64key)
+	if err != nil || len(key) != wgtypes.KeyLen {
 		return fmt.Errorf("key is of invalid size")
 	}
 
-	*key = k
+	*k = key
 	return nil
 }
 
-func (k Key) String() string {
-	return base64.StdEncoding.EncodeToString(k)
+// String returns the string representation of a public key
+func (k *Key) String() string {
+	return base64.StdEncoding.EncodeToString(*k)
 }
 
-func (k Key) Bytes() [wgtypes.KeyLen]byte {
-	buf := bytes.NewReader(k)
+// Bytes returns the byte representation of a public key
+func (k *Key) Bytes() [wgtypes.KeyLen]byte {
+	buf := bytes.NewReader(*k)
 	out := new([32]byte)
 
 	io.ReadFull(buf, out[:])
@@ -250,27 +281,30 @@ func (k Key) Bytes() [wgtypes.KeyLen]byte {
 	return *out
 }
 
-func (key *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
+// UnmarshalYAML returns a PresharedKey from a YAML string
+func (k *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err != nil {
 		return fmt.Errorf("could not parse private key path")
 	}
 
-	k, err := hex.DecodeString(*b)
-	if err != nil || len(k) != wgtypes.KeyLen {
+	key, err := hex.DecodeString(*b)
+	if err != nil || len(key) != wgtypes.KeyLen {
 		return fmt.Errorf("key is of invalid size")
 	}
 
-	*key = k
+	*k = key
 	return nil
 }
 
+// String returns the hex string representation of a preshared key
 func (k *PresharedKey) String() string {
 	return hex.EncodeToString([]byte(*k))
 }
 
-func (k PresharedKey) Bytes() [wgtypes.KeyLen]byte {
-	buf := bytes.NewReader(k)
+// Bytes returns the byte representation of a preshared key
+func (k *PresharedKey) Bytes() [wgtypes.KeyLen]byte {
+	buf := bytes.NewReader(*k)
 	out := new([32]byte)
 
 	io.ReadFull(buf, out[:])

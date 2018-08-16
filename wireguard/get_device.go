@@ -9,6 +9,7 @@ import (
 	nl "github.com/vishvananda/netlink"
 )
 
+// GetDevice returns the WireGuard interface and the link device for an interface name
 func GetDevice(ifname string) (*wgtypes.Device, nl.Link, error) {
 	nlcl, err := wireguardctrl.New()
 	if err != nil {

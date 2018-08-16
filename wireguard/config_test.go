@@ -65,10 +65,10 @@ func createPKey(t *testing.T) {
 func Test_ParseFullConfig(t *testing.T) {
 	createPKey(t)
 	c, err := ParseConfigReader(bytes.NewReader([]byte(fullConfigYAML)))
+	assert.Nil(t, err)
 
 	addr, sub, _ := net.ParseCIDR("1.2.3.4/24")
 
-	assert.Nil(t, err)
 	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Interface.Description)
 	assert.Equal(t, addr, c.Interface.Address.IP)
 	assert.Equal(t, 24, c.Interface.Address.Mask)
