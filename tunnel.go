@@ -82,7 +82,7 @@ func set(instance string, props map[string]string) {
 			}
 			c.FirewallMark = &mark
 		case "privkey":
-			k := new(wireguard.PrivateKeyFile)
+			k := new(wireguard.PrivateKey)
 			err := k.UnmarshalYAML(func(s interface{}) error {
 				*s.(*string) = "/etc/wireguard/gcp.key"
 				return nil

@@ -29,11 +29,13 @@ func exportConfig(instance string) {
 		c.Interface.Address = &wireguard.IPMask{IP: ip, Mask: mask}
 	}
 
+	priv := wireguard.PrivateKey{Path: "/path/to/private.key"}
 	description := ""
 	preDown := [][]string{}
 	postUp := [][]string{}
 	routes := new(bool)
 	if currentConfig != nil {
+		priv = currentConfig.Interface.PrivateKey
 		description = currentConfig.Interface.Description
 		preDown = currentConfig.Interface.PreDown
 		postUp = currentConfig.Interface.PostUp
@@ -41,6 +43,7 @@ func exportConfig(instance string) {
 	}
 
 	c.Interface.Description = description
+	c.Interface.PrivateKey = priv
 	c.Interface.ListenPort = wgdev.ListenPort
 	c.Interface.FWMark = wgdev.FirewallMark
 	c.Interface.PreDown = preDown

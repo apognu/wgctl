@@ -156,7 +156,7 @@ Those changes are not persisted, if you want to export the current configuration
 
 You can export the current configuration of an active tunnel by using the ```wgctl export``` command. If a ```wgctl``` configuration already exists, non-WireGuard properties (descriptions, hooks, etc.) will be merged with the running config. If not, the default values will be used.
 
-Please note that the private key is left blank.
+Please note that if the tunnel was not created through ```wgctl```, the private key path will be left blank.
 
 ```
 # wgctl export vpn1

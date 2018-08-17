@@ -40,7 +40,7 @@ func Test_SetDevice(t *testing.T) {
 		Interface: Interface{
 			ListenPort: 12345,
 			FWMark:     54321,
-			PrivateKey: getKey(),
+			PrivateKey: PrivateKey{Data: getKey()},
 		},
 		Peers: []*Peer{
 			{

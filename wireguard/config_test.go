@@ -154,7 +154,7 @@ func Test_CheckConfig(t *testing.T) {
 
 	k, _ := base64.StdEncoding.DecodeString("7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=")
 
-	c = &Config{Interface: Interface{PrivateKey: k}}
+	c = &Config{Interface: Interface{PrivateKey: PrivateKey{Data: k}}}
 	assert.NotEqual(nil, c.Check(), "")
 
 	c = &Config{Interface: Interface{ListenPort: 10000}}
@@ -167,7 +167,7 @@ func Test_CheckConfig(t *testing.T) {
 	c = &Config{Interface: Interface{Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{&Peer{}}}
 	assert.NotEqual(nil, c.Check(), "")
 
-	c = &Config{Interface: Interface{PrivateKey: k, Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{&Peer{PublicKey: k}}}
+	c = &Config{Interface: Interface{PrivateKey: PrivateKey{Data: k}, Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{&Peer{PublicKey: k}}}
 	assert.Equal(t, nil, c.Check(), "")
 }
 
@@ -274,7 +274,7 @@ func Test_UnmarshalUDPAddr(t *testing.T) {
 
 func Test_UnmarshalPrivateKeyFile(t *testing.T) {
 	createPKey(t)
-	key := new(PrivateKeyFile)
+	key := new(PrivateKey)
 	err := key.UnmarshalYAML(func(i interface{}) error {
 		*i.(*string) = "/etc/hosts"
 		return nil

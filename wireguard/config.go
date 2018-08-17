@@ -25,7 +25,10 @@ type IPNet net.IPNet
 type UDPAddr net.UDPAddr
 
 // PrivateKeyFile is an unmarshalable file path
-type PrivateKeyFile []byte
+type PrivateKey struct {
+	Path string
+	Data []byte
+}
 
 // Key is an unmarshalable ED25519 key
 type Key []byte
@@ -52,15 +55,14 @@ type Config struct {
 
 // Interface represents a YAML-encodable configuration for a WireGuard interface
 type Interface struct {
-	Description     string         `yaml:"description"`
-	Address         *IPMask        `yaml:"address"`
-	ListenPort      int            `yaml:"listen_port"`
-	PrivateKey      PrivateKeyFile `yaml:"private_key"`
-	_PrivateKeyFile string         `yaml:"-"`
-	FWMark          int            `yaml:"fwmark,omitempty"`
-	PostUp          [][]string     `yaml:"post_up,omitempty"`
-	PreDown         [][]string     `yaml:"pre_down,omitempty"`
-	SetUpRoutes     *bool          `yaml:"routes,omitempty"`
+	Description string     `yaml:"description"`
+	Address     *IPMask    `yaml:"address"`
+	ListenPort  int        `yaml:"listen_port"`
+	PrivateKey  PrivateKey `yaml:"private_key"`
+	FWMark      int        `yaml:"fwmark,omitempty"`
+	PostUp      [][]string `yaml:"post_up,omitempty"`
+	PreDown     [][]string `yaml:"pre_down,omitempty"`
+	SetUpRoutes *bool      `yaml:"routes,omitempty"`
 }
 
 // Peer represents a YAML-encodable configuration for a WireGuard peer
@@ -111,7 +113,7 @@ func (c *Config) Check() error {
 		v := true
 		c.Interface.SetUpRoutes = &v
 	}
-	if len(c.Interface.PrivateKey) != wgtypes.KeyLen {
+	if len(c.Interface.PrivateKey.Data) != wgtypes.KeyLen {
 		return fmt.Errorf("'private_key' must be provided")
 	}
 	if c.Interface.ListenPort == 0 {
@@ -214,7 +216,7 @@ func (ip UDPAddr) MarshalYAML() (interface{}, error) {
 }
 
 // UnmarshalYAML returns an private key from a YAML file path
-func (k *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
+func (k *PrivateKey) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
 	if err := f(b); err == nil {
 		if key, err := ioutil.ReadFile(*b); err == nil {
@@ -224,7 +226,10 @@ func (k *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 				return fmt.Errorf("key is of invalid size")
 			}
 
-			*k = key
+			*k = PrivateKey{
+				Path: *b,
+				Data: key,
+			}
 			return nil
 		}
 	}
@@ -233,18 +238,18 @@ func (k *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 }
 
 // MarshalYAML returns the YAML string representation of a PrivateKeyFile
-func (k PrivateKeyFile) MarshalYAML() (interface{}, error) {
-	return "/path/to/private.key", nil
+func (k PrivateKey) MarshalYAML() (interface{}, error) {
+	return k.Path, nil
 }
 
 // String returns the string repsentation of a private key
-func (k *PrivateKeyFile) String() string {
-	return base64.StdEncoding.EncodeToString([]byte(*k))
+func (k *PrivateKey) String() string {
+	return base64.StdEncoding.EncodeToString([]byte(k.Data))
 }
 
 // Bytes returns the byte representation of a private key
-func (k *PrivateKeyFile) Bytes() [wgtypes.KeyLen]byte {
-	buf := bytes.NewReader(*k)
+func (k *PrivateKey) Bytes() [wgtypes.KeyLen]byte {
+	buf := bytes.NewReader(k.Data)
 	out := new([32]byte)
 
 	io.ReadFull(buf, out[:])
