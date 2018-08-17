@@ -224,7 +224,7 @@ func (k *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 		b64key := strings.TrimSpace(string(key))
 		key, err = base64.StdEncoding.DecodeString(b64key)
 		if err != nil || len(key) != wgtypes.KeyLen {
-			return fmt.Errorf("key is of invalid size")
+			return fmt.Errorf("key is of invalid size 1")
 		}
 
 		*k = key
@@ -259,7 +259,7 @@ func (k *Key) UnmarshalYAML(f func(interface{}) error) error {
 	b64key := strings.TrimSpace(*b)
 	key, err := base64.StdEncoding.DecodeString(b64key)
 	if err != nil || len(key) != wgtypes.KeyLen {
-		return fmt.Errorf("key is of invalid size")
+		return fmt.Errorf("key is of invalid size 2")
 	}
 
 	*k = key
@@ -290,7 +290,7 @@ func (k *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 
 	key, err := hex.DecodeString(*b)
 	if err != nil || len(key) != wgtypes.KeyLen {
-		return fmt.Errorf("key is of invalid size")
+		return fmt.Errorf("key is of invalid size 3")
 	}
 
 	*k = key

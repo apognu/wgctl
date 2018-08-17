@@ -21,6 +21,13 @@ func Test_SetRPFilter(t *testing.T) {
 	assert.Equal(t, "2", value)
 }
 
+func Test_AddWrongDevice(t *testing.T) {
+	assert.NotNil(t, AddDevice("lo", &Config{}))
+
+	assert.NotNil(t, AddDevice("wgtest", &Config{Interface: Interface{Address: &IPMask{IP: net.ParseIP("300.300.300.300/24"), Mask: 48}}}))
+	DeleteDevice("wgtest")
+}
+
 func Test_AddDevice(t *testing.T) {
 	instance := "wgtest"
 	c := &Config{
@@ -68,6 +75,34 @@ func Test_AddDeviceRoutes(t *testing.T) {
 	routes, err := nl.RouteList(link, unix.AF_INET)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(routes))
+
+	DeleteDevice(instance)
+}
+
+func Test_AddDefaultRoutes(t *testing.T) {
+	_, sub1, _ := net.ParseCIDR("0.0.0.0/0")
+	subn1 := IPNet(*sub1)
+
+	instance := "wgtest"
+	c := &Config{
+		Interface: Interface{
+			Address:    &IPMask{IP: net.ParseIP("198.18.100.1"), Mask: 24},
+			ListenPort: 12345,
+		},
+		Peers: []*Peer{
+			&Peer{AllowedIPS: []IPNet{subn1}},
+		},
+	}
+
+	AddDevice(instance, c)
+	err := AddDeviceRoutes(instance, c)
+	assert.Nil(t, err)
+
+	_, link, err := GetDevice(instance)
+
+	routes, err := nl.RouteList(link, unix.AF_INET)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(routes))
 
 	DeleteDevice(instance)
 }

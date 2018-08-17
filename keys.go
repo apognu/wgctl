@@ -14,7 +14,12 @@ import (
 )
 
 func generateKey() {
-	fmt.Println(wireguard.GeneratePrivateKey())
+	k, err := wireguard.GeneratePrivateKey()
+	if err != nil {
+		logrus.Fatalf("could not generate private key: %s", err.Error())
+	}
+
+	fmt.Println(k.String())
 }
 
 func generatePublicKey() {
@@ -29,9 +34,16 @@ func generatePublicKey() {
 		logrus.Fatalf("the key read from stdin is of an invalid size")
 	}
 
-	fmt.Println(wireguard.ComputePublicKey(b))
+	k := wireguard.ComputePublicKey(b)
+
+	fmt.Println(k.String())
 }
 
 func generatePSK() {
-	fmt.Println(wireguard.GeneratePSK())
+	k, err := wireguard.GeneratePSK()
+	if err != nil {
+		logrus.Fatalf("could not generate private key: %s", err.Error())
+	}
+
+	fmt.Println(k.String())
 }

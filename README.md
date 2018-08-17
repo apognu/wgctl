@@ -1,6 +1,7 @@
 # wgctl - WireGuard control utility
 
 [![](https://travis-ci.org/apognu/wgctl.svg?branch=master)](https://travis-ci.org/apognu/wgctl)
+[![](https://coveralls.io/repos/github/apognu/wgctl/badge.svg)](https://coveralls.io/github/apognu/wgctl)
 
 This is a personal project to allow WireGuard to be configured through the use of YAML files. It uses Netlink (through [wireguardctrl](https://github.com/mdlayher/wireguardctrl)) under the hood for all interaction with the system.
 
@@ -85,8 +86,9 @@ Commands:
   status [<flags>] [<instance>]
   info <instance>
   key
-    generate
+    private
     public
+    psk
   version
 
 # wgctl start vpn

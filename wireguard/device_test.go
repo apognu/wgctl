@@ -1,23 +1,22 @@
 package wireguard
 
 import (
-	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func getKey() []byte {
-	k, _ := base64.StdEncoding.DecodeString(GeneratePrivateKey())
+	k, _ := GeneratePrivateKey()
 	return k
 }
 
 func getPSK() []byte {
-	k, _ := hex.DecodeString(GeneratePSK())
+	k, _ := GeneratePSK()
 	return k
 }
 
@@ -25,6 +24,14 @@ func getEndpoint() *UDPAddr {
 	ip := []byte{byte(rand.Intn(255)), byte(rand.Intn(255)), byte(rand.Intn(255)), byte(rand.Intn(255))}
 	port := rand.Intn(65000)
 	return &UDPAddr{IP: net.IP(ip), Port: port}
+}
+
+func getSubnet() IPNet {
+	ip := net.IP([]byte{byte(rand.Intn(255)), byte(rand.Intn(255)), byte(rand.Intn(255)), byte(rand.Intn(255))})
+	mask := net.CIDRMask(rand.Intn(32), 32)
+	sub := ip.Mask(mask)
+
+	return IPNet(net.IPNet{IP: sub, Mask: mask})
 }
 
 func Test_SetDevice(t *testing.T) {
@@ -37,17 +44,20 @@ func Test_SetDevice(t *testing.T) {
 		},
 		Peers: []*Peer{
 			{
-				PublicKey: getKey(),
-				Endpoint:  getEndpoint(),
+				PublicKey:         getKey(),
+				Endpoint:          getEndpoint(),
+				KeepaliveInterval: 30 * time.Second,
 			},
 			{
 				PublicKey:    getKey(),
 				PresharedKey: getPSK(),
+				AllowedIPS:   []IPNet{getSubnet(), getSubnet()},
 			},
 			{
 				PublicKey:    getKey(),
 				Endpoint:     getEndpoint(),
 				PresharedKey: getPSK(),
+				AllowedIPS:   []IPNet{getSubnet()},
 			},
 		},
 	}
@@ -82,7 +92,24 @@ func Test_SetDevice(t *testing.T) {
 		} else {
 			assert.Equal(t, cp.PresharedKey.String(), fmt.Sprintf("%x", p.PresharedKey[:]))
 		}
+		assert.Equal(t, len(cp.AllowedIPS), len(p.AllowedIPs))
+		for _, cip := range cp.AllowedIPS {
+			match := false
+			for _, ip := range p.AllowedIPs {
+				if cip.IP.String() == ip.IP.String() && cip.Mask.String() == ip.Mask.String() {
+					match = true
+				}
+			}
+
+			assert.True(t, match)
+		}
 	}
 
 	DeleteDevice(instance)
+}
+
+func Test_SetInvalidFWMark(t *testing.T) {
+	err := SetFWMark("wgtest", 10)
+
+	assert.NotNil(t, err)
 }

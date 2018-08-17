@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	sysctl "github.com/lorenzosaino/go-sysctl"
-	"github.com/sirupsen/logrus"
 
 	nl "github.com/vishvananda/netlink"
 )
@@ -77,9 +76,18 @@ func AddDeviceRoutes(instance string, config *Config) error {
 		for _, ip := range p.AllowedIPS {
 			sub := net.IPNet(ip)
 			if strings.HasSuffix(sub.String(), "/0") {
-				SetFWMark(instance, config.Interface.ListenPort)
-				SetRPFilter()
-				AddCatchAllRoute(l, sub, config)
+				err := SetFWMark(instance, config.Interface.ListenPort)
+				if err != nil {
+					return err
+				}
+				err = SetRPFilter()
+				if err != nil {
+					return err
+				}
+				err = AddCatchAllRoute(l, sub, config)
+				if err != nil {
+					return err
+				}
 			} else {
 				n := net.IPNet(ip)
 				err := nl.RouteAdd(&nl.Route{Dst: &n, LinkIndex: l.Attrs().Index})
@@ -94,11 +102,11 @@ func AddDeviceRoutes(instance string, config *Config) error {
 }
 
 // AddCatchAllRoute sets up routing to forward all traffic
-func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) {
+func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) error {
 	r := &nl.Route{Dst: &dst, LinkIndex: l.Attrs().Index, Table: config.Interface.ListenPort}
 	err := nl.RouteAdd(r)
 	if err != nil {
-		logrus.Fatalf("could not add route: %s", err.Error())
+		return fmt.Errorf("could not add route: %s", err.Error())
 	}
 
 	rule := nl.NewRule()
@@ -108,7 +116,7 @@ func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) {
 
 	err = nl.RuleAdd(rule)
 	if err != nil {
-		logrus.Fatalf("could not add suppress prefix length: %s", err.Error())
+		return fmt.Errorf("could not add suppress prefix length: %s", err.Error())
 	}
 
 	rule = nl.NewRule()
@@ -119,8 +127,10 @@ func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) {
 
 	err = nl.RuleAdd(rule)
 	if err != nil {
-		logrus.Fatalf("could not add fwmark: %s", err.Error())
+		return fmt.Errorf("could not add fwmark: %s", err.Error())
 	}
+
+	return nil
 }
 
 // DeleteDevice deleted a WireGuard device and all routes and rules linked to it'

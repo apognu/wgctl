@@ -55,6 +55,24 @@ peers:
   - public_key: 7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=
 `
 
+const configWithInvalidPeerKey = `
+interface:
+  address: 1.2.3.4/24
+  listen_port: 23456
+  private_key: /tmp/testing.key
+peers:
+  - public_key: 7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD
+`
+
+const configWithEmptyPeerKey = `
+interface:
+  address: 1.2.3.4/24
+  listen_port: 23456
+  private_key: /tmp/testing.key
+peers:
+  - {}
+`
+
 func createPKey(t *testing.T) {
 	err := ioutil.WriteFile("/tmp/testing.key", []byte("7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4="), 0600)
 	if err != nil {
@@ -115,6 +133,20 @@ func Test_ParseMinimalConfigWithPeer(t *testing.T) {
 	assert.Equal(t, 0*time.Second, c.Peers[0].KeepaliveInterval)
 }
 
+func Test_ParseConfigWithInvalidPeerKey(t *testing.T) {
+	createPKey(t)
+	_, err := ParseConfigReader(bytes.NewReader([]byte(configWithInvalidPeerKey)))
+
+	assert.NotNil(t, err)
+}
+
+func Test_ParseConfigWithEmptyPeerKey(t *testing.T) {
+	createPKey(t)
+	_, err := ParseConfigReader(bytes.NewReader([]byte(configWithEmptyPeerKey)))
+
+	assert.NotNil(t, err)
+}
+
 func Test_CheckConfig(t *testing.T) {
 	c := &Config{}
 	assert.NotEqual(nil, c.Check(), "")
@@ -138,6 +170,26 @@ func Test_CheckConfig(t *testing.T) {
 	assert.Equal(t, nil, c.Check(), "")
 }
 
+func Test_ParseConfigNoExistFile(t *testing.T) {
+	_, err := ParseConfig("notexistingconfig")
+	assert.NotNil(t, err)
+
+	_, err = ParseConfig("/etc/wg/notexistingconfig.yml")
+	assert.NotNil(t, err)
+}
+
+func Test_ParseConfig(t *testing.T) {
+	ioutil.WriteFile("/etc/wireguard/existingconfig.yml", []byte(fullConfigYAML), 0400)
+
+	_, err := ParseConfig("existingconfig")
+	assert.Nil(t, err)
+
+	_, err = ParseConfig("/etc/wireguard/existingconfig.yml")
+	assert.Nil(t, err)
+
+	os.Remove("/etc/wireguard/existingconfig.yml")
+}
+
 func Test_GetPeer(t *testing.T) {
 	createPKey(t)
 	c, err := ParseConfigReader(bytes.NewReader([]byte(fullConfigYAML)))
@@ -148,6 +200,11 @@ func Test_GetPeer(t *testing.T) {
 	p := c.GetPeer("7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=")
 	assert.NotNil(t, p)
 	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", p.PublicKey.String())
+}
+
+func Test_GetInstanceFromArg(t *testing.T) {
+	assert.Equal(t, "instance", GetInstanceFromArg("instance"))
+	assert.Equal(t, "hosts", GetInstanceFromArg("/etc/hosts"))
 }
 
 func Test_GetConfigPath(t *testing.T) {

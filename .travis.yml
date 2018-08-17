@@ -1,19 +1,24 @@
+sudo: required
 language: go
 go:
-  - '1.x'
+  - 1.x
 os:
   - linux
-sudo: required
+env:
+  global:
+    secure: emnRsBTHNNiMUzB/sXtLlLxc1wStTFjl1eCxCPgp/SIHjVFDYrjdyaTzQDhzdpfxVb1xrLTp7ND5gfc3v4/7Oj5BCRtBn8p/HxMdIogCy2ciZa13khFJwDCMfOwxesHzhxjCyVdJIsu9RuR8dLfgy/0MT120icwk/G/ipKzQgpMrw+YTe59jXsRPOUDxas+foka02vqJtbJyHj1hh4kqnK2DfTAu4puSmmKdXV1UvLhUwDqXoeDtp5I9WoVmSDQBVcDsaESdjD4+TcMOVd3jJM8NsP4kdW7Oa5cHd+0vJtAeJtzjB8346knEiuqa98FahbMmy4dL15BqPnyT8BrSf3ZqoMTrcbeVridpT+qowxcqzaprU46bWks6fi2UYJnw1AY6IeADMoiSks1f6IoGCaDaFbsLr3MiUDQHxv2UZfmksNvvpyU0R7EhW5K8876Ik3DLXOMP46mJtN91aw7LRGwwUU8fJE9dftO0lTbsiCPtWKX+gHdlRdz9iudwmNRK9w6r2R7IubIahc0o2tOnk8Lr6ZzF1RXng6uVnKvChMLwSqr0Uvl2g+2gNyAwy0zA7aubH1kHpkIx3Y9wgbRm1EvlsxhLbAZZ+aibggFOOiVwIASBmoXfqnh20GY2TJcSB7dm03MgTRlQ291QvSXvMpTD1Vto7prRvXM48b2HUYg=
 before_install:
   - sudo add-apt-repository -y ppa:wireguard/wireguard
   - sudo apt-get -yq update
   - sudo apt-get -yq install linux-headers-$(uname -r) wireguard-dkms
   - go get github.com/golang/dep/cmd/dep
   - go get golang.org/x/lint/golint
-insstall:
+  - go get github.com/mattn/goveralls
+install:
   - dep ensure -v
 script:
   - go build .
   - go vet ./...
   - golint -set_exit_status $(go list ./... | grep -v vendor/)
   - sudo env "PATH=$PATH" go test -v ./...
+  - sudo env "PATH=$PATH" goveralls -service=travis-ci -repotoken=$COVERALLS_TOKEN
