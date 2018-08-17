@@ -1,7 +1,7 @@
 # wgctl - WireGuard control utility
 
-[![CI Status](https://travis-ci.org/apognu/wgctl.svg?branch=master)](https://travis-ci.org/apognu/wgctl)
-[![Coverage Status](https://coveralls.io/repos/github/apognu/wgctl/badge.svg)](https://coveralls.io/github/apognu/wgctl)
+[![CI Status](https://img.shields.io/travis/apognu/wgctl/master.svg?style=flat-square)](https://travis-ci.org/apognu/wgctl)
+[![Coverage Status](https://img.shields.io/coveralls/apognu/wgctl/master.svg?style=flat-square)](https://coveralls.io/github/apognu/wgctl?branch=master)
 
 This is a personal project to allow WireGuard to be configured through the use of YAML files. It uses Netlink (through [wireguardctrl](https://github.com/mdlayher/wireguardctrl)) under the hood for all interaction with the system.
 
