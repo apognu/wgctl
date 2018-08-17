@@ -88,20 +88,41 @@ Commands:
     public
     psk
   version
+```
 
+### Control the state of tunnels
+
+```
 # wgctl start vpn
 # wgctl stop vpn
 # wgctl restart vpn
+```
 
+### Obtain the state of all configured or active tunnels
+
+The ```-s``` option only displays the name of active tunnels, for ease of use in scripts.
+
+```
 # wgctl status
 [↓] tunnel 'vpn1' is down
 [↑] tunnel 'vpn2' is up and running
 [↓] tunnel 'corporate' is down
-[↓] tunnel 'personal' is down
+[↓] tunnel 'personal' is up and running
 
+# wgctl status -s
+vpn2
+personal
+
+# wgctl status vpn1
+[↓] tunnel 'vpn1' is down
+```
+
+### Get configuration and runtime details for an active tunnel
+
+```
 # wgctl info vpn2
 tunnel: 
-  interface: Perosnal VPN tunnel #2
+  interface: Personal VPN tunnel #2
   public key: SqtWXnIGoHWibfqZwAe6iFc560wWuV6zUL+4CqzDxlQ=
   port: 51822
   fwmark: 12548
@@ -110,6 +131,21 @@ tunnel:
     endpoint: 4.3.2.1:10000
     allowed ips: 192.168.0.1/30, 0.0.0.0/0
     transfer: ↓ 0 ↑ 0
+```
+
+### Change tunnel configuration on the fly
+
+Those changes are not persisted, and there is no option to export the active configuration (for now). Please note that you can provide a subset of the options shown below.
+
+```
+# Change properties on the interface itself
+# wgctl set vpn1 privkey=/etc/wireguard/new.key port=43210 fwmark=1437
+
+# Add a new peer or change the properties of the peer with the given public key
+# wgctl peer set vpn1 pubkey=sSg9kL+KsMBQpFPO+TXl7A4OKjLb0xWORx7eR3JDjXM= endpoint=192.168.255.254:10000 allowedips=2.2.2.2/24,3.3.3.3/30 keepalive=20 psk=636493c476092bf06806794d6c2d62c990c68a39b71b73019a328a4d646d9e42
+
+# Replace the whole set of peers with the given one
+# wgctl peer replace vpn1 pubkey=sSg9kL+KsMBQpFPO+TXl7A4OKjLb0xWORx7eR3JDjXM= endpoint=192.168.255.254:10000 allowedips=2.2.2.2/24,3.3.3.3/30 keepalive=20 psk=636493c476092bf06806794d6c2d62c990c68a39b71b73019a328a4d646d9e42
 ```
 
 ## Routes and firewall

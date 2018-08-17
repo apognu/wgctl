@@ -44,7 +44,7 @@ func main() {
 
 	kpPeer := kp.Command("peer", "Set live tunnel peers")
 
-	kpPeerSet := kpPeer.Command("add", "add a new peer to a live tunnel").PreAction(requireRoot)
+	kpPeerSet := kpPeer.Command("set", "add a new peer to a live tunnel").PreAction(requireRoot)
 	kpPeerSetInstance := kpPeerSet.Arg("instance", "name of your WireGuard configuration").Required().String()
 	kpPeerSetPeer := kpPeerSet.Arg("peer", "list of key=value to the new peer").Required().StringMap()
 
