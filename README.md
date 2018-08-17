@@ -59,9 +59,7 @@ $ go build .
 
 ### Testing
 
-You can run the tests for this project, as root (since we are testing netlink communication and device creation). Keep in mind that this will modify properties on your live system, use with caution.
-
-Test creation is under way, we have a lot left to do.
+You can run the tests for this project, as root (since we are testing netlink communication and device creation). Keep in mind that this will modify properties on your live system (devices, routes, /proc settings, etc.), so use with caution.
 
 ```
 $ sudo -E go test ./... 

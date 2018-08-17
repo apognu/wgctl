@@ -34,14 +34,10 @@ func AddDevice(instance string, config *Config) error {
 	attrs := nl.NewLinkAttrs()
 	attrs.Name = instance
 
-	err := nl.LinkAdd(&WGLink{LinkAttrs: attrs})
-	if err != nil {
-		return fmt.Errorf("could not create device: %s", err.Error())
-	}
-
-	l, err := nl.LinkByName(instance)
-	if err != nil {
-		return fmt.Errorf("could not find recently created device: %s", err.Error())
+	err1 := nl.LinkAdd(&WGLink{LinkAttrs: attrs})
+	l, err2 := nl.LinkByName(instance)
+	if anyError(err1, err2) {
+		return fmt.Errorf("could not find recently created device: %s", firstError(err1, err2))
 	}
 
 	if config.Interface.Address != nil {
@@ -57,8 +53,7 @@ func AddDevice(instance string, config *Config) error {
 		}
 	}
 
-	err = nl.LinkSetUp(l)
-	if err != nil {
+	if err := nl.LinkSetUp(l); err != nil {
 		return fmt.Errorf("could bring up device: %s", err.Error())
 	}
 

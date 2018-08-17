@@ -3,6 +3,7 @@ package wireguard
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
@@ -213,4 +214,135 @@ func Test_GetConfigPath(t *testing.T) {
 
 	os.Setenv("WGCTL_CONFIG_PATH", "/my/wireguard/config")
 	assert.Equal(t, "/my/wireguard/config", GetConfigPath())
+}
+
+func Test_UnmarshalIPMask(t *testing.T) {
+	ip := new(IPMask)
+	err := ip.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "not_an_ip"
+		return nil
+	})
+
+	assert.NotNil(t, err)
+
+	err = ip.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "127.0.0.1/8"
+		return nil
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, "127.0.0.1", ip.IP.String())
+	assert.Equal(t, 8, ip.Mask)
+}
+
+func Test_UnmarshalIPNet(t *testing.T) {
+	ip := new(IPNet)
+	err := ip.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "not_an_ip"
+		return nil
+	})
+
+	assert.NotNil(t, err)
+
+	err = ip.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "127.0.0.1/8"
+		return nil
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, "127.0.0.0", ip.IP.String())
+}
+
+func Test_UnmarshalUDPAddr(t *testing.T) {
+	addr := new(UDPAddr)
+	err := addr.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "not_an_ip"
+		return nil
+	})
+
+	assert.NotNil(t, err)
+
+	err = addr.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "127.0.0.1:12345"
+		return nil
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, "127.0.0.1", addr.IP.String())
+	assert.Equal(t, 12345, addr.Port)
+}
+
+func Test_UnmarshalPrivateKeyFile(t *testing.T) {
+	createPKey(t)
+	key := new(PrivateKeyFile)
+	err := key.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "/etc/hosts"
+		return nil
+	})
+
+	assert.NotNil(t, err)
+
+	err = key.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "/not/a/file"
+		return nil
+	})
+
+	assert.NotNil(t, err)
+
+	err = key.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "/tmp/testing.key"
+		return nil
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", key.String())
+}
+
+func Test_UnmarshalKey(t *testing.T) {
+	key := new(Key)
+	err := key.UnmarshalYAML(func(i interface{}) error {
+		return fmt.Errorf("wrong data type")
+	})
+
+	assert.NotNil(t, err)
+
+	err = key.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "not_a_key"
+		return nil
+	})
+
+	assert.NotNil(t, err)
+
+	err = key.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "uJtUEgdOFdszfiVbMVGdd7/la9k7P9+iUHRzJFtVfWc="
+		return nil
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, "uJtUEgdOFdszfiVbMVGdd7/la9k7P9+iUHRzJFtVfWc=", key.String())
+}
+
+func Test_UnmarshalPSK(t *testing.T) {
+	key := new(PresharedKey)
+
+	err := key.UnmarshalYAML(func(i interface{}) error {
+		return fmt.Errorf("wrong data type")
+	})
+
+	assert.NotNil(t, err)
+
+	err = key.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "not_a_key"
+		return nil
+	})
+
+	assert.NotNil(t, err)
+
+	err = key.UnmarshalYAML(func(i interface{}) error {
+		*i.(*string) = "bac6b07b5d9a933a6557770bcc81bfe0017a9a690e3cd7f49d0068986ff53e92"
+		return nil
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, "bac6b07b5d9a933a6557770bcc81bfe0017a9a690e3cd7f49d0068986ff53e92", key.String())
 }

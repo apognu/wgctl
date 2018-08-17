@@ -21,19 +21,33 @@ func SetFWMark(instance string, fwmark int) error {
 	return err
 }
 
-// ConfigureDevice sets all WireGuard parameter in a Config
-func ConfigureDevice(instance string, config *Config) error {
+// SetDevice sets individual properties on a wireguard device without creating low-level
+// interfaces.
+func SetDevice(instance string, config wgtypes.Config, replacePeers bool) error {
 	nlcl, err := wireguardctrl.New()
 	if err != nil {
 		return fmt.Errorf("could not create wireguard client: %s", err.Error())
 	}
 
+	config.ReplacePeers = replacePeers
+
+	err = nlcl.ConfigureDevice(instance, config)
+	if err != nil {
+		return fmt.Errorf("could not configure wireguard client: %s", err.Error())
+	}
+
+	return nil
+}
+
+// ConfigureDevice sets all WireGuard parameter in a Config
+func ConfigureDevice(instance string, config *Config, replacePeers bool) error {
 	priv := wgtypes.Key(config.Interface.PrivateKey.Bytes())
 
 	c := wgtypes.Config{
 		PrivateKey:   &priv,
 		ListenPort:   &config.Interface.ListenPort,
 		FirewallMark: &config.Interface.FWMark,
+		ReplacePeers: replacePeers,
 	}
 
 	if len(config.Peers) > 0 {
@@ -45,12 +59,7 @@ func ConfigureDevice(instance string, config *Config) error {
 		c.Peers = peers
 	}
 
-	err = nlcl.ConfigureDevice(instance, c)
-	if err != nil {
-		return fmt.Errorf("could not configure wireguard client: %s", err.Error())
-	}
-
-	return nil
+	return SetDevice(instance, c, true)
 }
 
 // ParsePeer creates a Netlink-compatible view of a peer

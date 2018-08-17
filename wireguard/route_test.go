@@ -118,4 +118,7 @@ func Test_DeleteDevice(t *testing.T) {
 
 	_, _, err = GetDevice(instance)
 	assert.NotNil(t, err)
+
+	err = DeleteDevice("not_a_device")
+	assert.NotNil(t, err)
 }

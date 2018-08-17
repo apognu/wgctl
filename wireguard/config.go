@@ -10,7 +10,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -157,78 +156,60 @@ func GetInstanceFromArg(path string) string {
 // UnmarshalYAML returns an IPMask from a YAML string
 func (ip *IPMask) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
-	if err := f(b); err != nil {
-		return fmt.Errorf("could not parse IP address ")
-	}
-
-	if addr, cidr, err := net.ParseCIDR(*b); err == nil {
-		mask, _ := cidr.Mask.Size()
-		*ip = IPMask{
-			IP:   addr,
-			Mask: mask,
+	if err := f(b); err == nil {
+		if addr, cidr, err := net.ParseCIDR(*b); err == nil {
+			mask, _ := cidr.Mask.Size()
+			*ip = IPMask{
+				IP:   addr,
+				Mask: mask,
+			}
+			return nil
 		}
-		return nil
-	}
-
-	return fmt.Errorf("could not parse IP address! %s", *b)
-}
-
-// UnmarshalYAML returns an IPNet from a YAML string
-func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
-	b := new(string)
-	if err := f(b); err != nil {
-		return fmt.Errorf("could not parse IP address ")
-	}
-
-	if _, cidr, err := net.ParseCIDR(*b); err == nil {
-		*ip = IPNet(*cidr)
-		return nil
-	}
-
-	return fmt.Errorf("could not parse IP address! %s", *b)
-}
-
-// UnmarshalYAML returns an UDPAddr from a YAML string
-func (ip *UDPAddr) UnmarshalYAML(f func(interface{}) error) error {
-	b := new(string)
-	if err := f(b); err != nil {
-		return fmt.Errorf("could not parse IP address")
-	}
-
-	if host, port, err := net.SplitHostPort(*b); err == nil {
-		h := net.ParseIP(host)
-		p, err := strconv.Atoi(port)
-		if err != nil {
-			return fmt.Errorf("could not parse port")
-		}
-
-		*ip = UDPAddr{IP: h, Port: p}
-		return nil
 	}
 
 	return fmt.Errorf("could not parse IP address: %s", *b)
 }
 
+// UnmarshalYAML returns an IPNet from a YAML string
+func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
+	b := new(string)
+	if err := f(b); err == nil {
+		if _, cidr, err := net.ParseCIDR(*b); err == nil {
+			*ip = IPNet(*cidr)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("could not parse IP address: %s", *b)
+}
+
+// UnmarshalYAML returns an UDPAddr from a YAML string
+func (ip *UDPAddr) UnmarshalYAML(f func(interface{}) error) error {
+	b := new(string)
+	if err := f(b); err == nil {
+		if addr, err := net.ResolveUDPAddr("udp", *b); err == nil {
+			*ip = UDPAddr(*addr)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("could not parse UDP address: %s", *b)
+}
+
 // UnmarshalYAML returns an private key from a YAML file path
 func (k *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
-	if err := f(b); err != nil {
-		return fmt.Errorf("could not parse private key path")
-	}
+	if err := f(b); err == nil {
+		if key, err := ioutil.ReadFile(*b); err == nil {
+			b64key := strings.TrimSpace(string(key))
+			key, err = base64.StdEncoding.DecodeString(b64key)
+			if err != nil || len(key) != wgtypes.KeyLen {
+				return fmt.Errorf("key is of invalid size")
+			}
 
-	if key, err := ioutil.ReadFile(*b); err == nil {
-		if err != nil {
-			return fmt.Errorf("could not read private key")
+			*k = key
+			return nil
 		}
-
-		b64key := strings.TrimSpace(string(key))
-		key, err = base64.StdEncoding.DecodeString(b64key)
-		if err != nil || len(key) != wgtypes.KeyLen {
-			return fmt.Errorf("key is of invalid size 1")
-		}
-
-		*k = key
-		return nil
 	}
 
 	return fmt.Errorf("could not open private key file")
@@ -252,18 +233,18 @@ func (k *PrivateKeyFile) Bytes() [wgtypes.KeyLen]byte {
 // UnmarshalYAML returns a Key from a YAML string
 func (k *Key) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
-	if err := f(b); err != nil {
-		return fmt.Errorf("could not parse private key path")
+	if err := f(b); err == nil {
+		b64key := strings.TrimSpace(*b)
+		key, err := base64.StdEncoding.DecodeString(b64key)
+		if err != nil || len(key) != wgtypes.KeyLen {
+			return fmt.Errorf("key is of invalid size")
+		}
+
+		*k = key
+		return nil
 	}
 
-	b64key := strings.TrimSpace(*b)
-	key, err := base64.StdEncoding.DecodeString(b64key)
-	if err != nil || len(key) != wgtypes.KeyLen {
-		return fmt.Errorf("key is of invalid size 2")
-	}
-
-	*k = key
-	return nil
+	return fmt.Errorf("could not parse public key")
 }
 
 // String returns the string representation of a public key
@@ -284,17 +265,17 @@ func (k *Key) Bytes() [wgtypes.KeyLen]byte {
 // UnmarshalYAML returns a PresharedKey from a YAML string
 func (k *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
-	if err := f(b); err != nil {
-		return fmt.Errorf("could not parse private key path")
+	if err := f(b); err == nil {
+		key, err := hex.DecodeString(*b)
+		if err != nil || len(key) != wgtypes.KeyLen {
+			return fmt.Errorf("preshared key is of invalid size")
+		}
+
+		*k = key
+		return nil
 	}
 
-	key, err := hex.DecodeString(*b)
-	if err != nil || len(key) != wgtypes.KeyLen {
-		return fmt.Errorf("key is of invalid size 3")
-	}
-
-	*k = key
-	return nil
+	return fmt.Errorf("could not parse preshared key")
 }
 
 // String returns the hex string representation of a preshared key

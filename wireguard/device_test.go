@@ -63,7 +63,7 @@ func Test_SetDevice(t *testing.T) {
 	}
 
 	AddDevice(instance, c)
-	err := ConfigureDevice(instance, c)
+	err := ConfigureDevice(instance, c, true)
 	assert.Nil(t, err)
 
 	dev, _, err := GetDevice(instance)

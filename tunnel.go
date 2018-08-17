@@ -2,9 +2,15 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/hex"
+	"net"
 	"os/exec"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/mdlayher/wireguardctrl/wgtypes"
 	"github.com/sirupsen/logrus"
 
 	"github.com/apognu/wgctl/wireguard"
@@ -13,7 +19,7 @@ import (
 func start(instance string, noRoutes bool) {
 	config, err := wireguard.ParseConfig(instance)
 	if err != nil {
-		logrus.Fatalf("could not parse configuration: %s", err.Error())
+		logrus.Fatal(err)
 	}
 	instance = wireguard.GetInstanceFromArg(instance)
 
@@ -21,7 +27,7 @@ func start(instance string, noRoutes bool) {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	err = wireguard.ConfigureDevice(instance, config)
+	err = wireguard.ConfigureDevice(instance, config, true)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -44,7 +50,7 @@ func start(instance string, noRoutes bool) {
 func stop(instance string) {
 	config, err := wireguard.ParseConfig(instance)
 	if err != nil {
-		logrus.Fatalf("could not parse configuration: %s", err.Error())
+		logrus.Fatal(err)
 	}
 	instance = wireguard.GetInstanceFromArg(instance)
 
@@ -57,6 +63,102 @@ func stop(instance string) {
 	}
 
 	Down("tunnel '%s' has been torn down", instance)
+}
+
+func set(instance string, props map[string]string) {
+	c := wgtypes.Config{}
+	for k, v := range props {
+		switch k {
+		case "port":
+			port, err := strconv.Atoi(v)
+			if err != nil {
+				logrus.Fatalf("could not parse port '%s': %s", v, err.Error())
+			}
+			c.ListenPort = &port
+		case "fwmark":
+			mark, err := strconv.Atoi(v)
+			if err != nil {
+				logrus.Fatalf("could not parse fwmark '%s': %s", v, err.Error())
+			}
+			c.FirewallMark = &mark
+		case "privkey":
+			k := new(wireguard.PrivateKeyFile)
+			err := k.UnmarshalYAML(func(s interface{}) error {
+				*s.(*string) = "/etc/wireguard/gcp.key"
+				return nil
+			})
+			if err != nil {
+				logrus.Fatal(err)
+			}
+
+			key := wgtypes.Key(k.Bytes())
+
+			c.PrivateKey = &key
+		}
+	}
+
+	err := wireguard.SetDevice(instance, c, false)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+}
+
+func setPeers(instance string, props map[string]string, replace bool) {
+	p := wgtypes.PeerConfig{}
+	for k, v := range props {
+		switch k {
+		case "pubkey":
+			bk, err := base64.StdEncoding.DecodeString(v)
+			if err != nil {
+				logrus.Fatalf("could not decode public key: %s", err.Error())
+			}
+			k := []byte(bk)
+
+			p.PublicKey, _ = wgtypes.NewKey(k)
+		case "psk":
+			bk, err := hex.DecodeString(v)
+			if err != nil {
+				logrus.Fatalf("could not decode preshared key: %s", err.Error())
+			}
+			k, err := wgtypes.NewKey(bk)
+			if err != nil {
+				logrus.Fatalf("could not decode preshared key: %s", err.Error())
+			}
+
+			p.PresharedKey = &k
+		case "endpoint":
+			addr, err := net.ResolveUDPAddr("udp", v)
+			if err != nil {
+				logrus.Fatalf("could not parse UDP address '%s': %s", v, err.Error())
+			}
+
+			p.Endpoint = addr
+		case "allowedips":
+			strs := strings.Split(v, ",")
+			ips := make([]net.IPNet, len(strs))
+			for idx, ip := range strs {
+				_, sub, err := net.ParseCIDR(ip)
+				if err != nil {
+					logrus.Fatalf("could not parse allowed IP '%s': %s", ip, err.Error())
+				}
+				ips[idx] = *sub
+			}
+
+			p.AllowedIPs = ips
+		case "keepalive":
+			ka, err := strconv.Atoi(v)
+			if err != nil {
+				logrus.Fatalf("could not parse keepalive interval '%s': %s", v, err.Error())
+			}
+			dur := time.Duration(ka) * time.Second
+
+			p.PersistentKeepaliveInterval = &dur
+		}
+	}
+
+	c := wgtypes.Config{Peers: []wgtypes.PeerConfig{p}}
+
+	wireguard.SetDevice(instance, c, replace)
 }
 
 func execute(cmdSpec []string) {

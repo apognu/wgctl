@@ -38,6 +38,20 @@ func main() {
 	kpInfo := kp.Command("info", "Get tunnel information.").PreAction(requireRoot)
 	kpInfoInstance := kpInfo.Arg("instance", "name of your WireGuard configuration").Required().String()
 
+	kpSet := kp.Command("set", "Set live tunnel properties").PreAction(requireRoot)
+	kpSetInstance := kpSet.Arg("instance", "name of your WireGuard configuration").Required().String()
+	kpSetParameters := kpSet.Arg("settings", "list of key=value to apply to the wireguard interface").StringMap()
+
+	kpPeer := kp.Command("peer", "Set live tunnel peers")
+
+	kpPeerSet := kpPeer.Command("add", "add a new peer to a live tunnel").PreAction(requireRoot)
+	kpPeerSetInstance := kpPeerSet.Arg("instance", "name of your WireGuard configuration").Required().String()
+	kpPeerSetPeer := kpPeerSet.Arg("peer", "list of key=value to the new peer").Required().StringMap()
+
+	kpPeerReplace := kpPeer.Command("replace", "replace all peers on a live tunnel").PreAction(requireRoot)
+	kpPeerReplaceInstance := kpPeerReplace.Arg("instance", "name of your WireGuard configuration").Required().String()
+	kpPeerReplacePeer := kpPeerReplace.Arg("peer", "list of key=value to the new peer").Required().StringMap()
+
 	kpKey := kp.Command("key", "Manage WireGuard keys")
 	kpKeyGenerate := kpKey.Command("private", "generate a new private key")
 	kpKeyPublic := kpKey.Command("public", "compute public key from a private key from stdin")
@@ -59,6 +73,12 @@ func main() {
 		status(*kpStatusInstance, *kpStatusShort, false)
 	case kpInfo.FullCommand():
 		info(*kpInfoInstance)
+	case kpSet.FullCommand():
+		set(*kpSetInstance, *kpSetParameters)
+	case kpPeerSet.FullCommand():
+		setPeers(*kpPeerSetInstance, *kpPeerSetPeer, false)
+	case kpPeerReplace.FullCommand():
+		setPeers(*kpPeerReplaceInstance, *kpPeerReplacePeer, true)
 	case kpVersion.FullCommand():
 		version()
 	case kpKeyGenerate.FullCommand():
