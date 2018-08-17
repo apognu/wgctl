@@ -24,7 +24,7 @@ type IPNet net.IPNet
 // UDPAddr is an unmarshalable version of net.UDPAddr
 type UDPAddr net.UDPAddr
 
-// PrivateKeyFile is an unmarshalable file path
+// PrivateKey is an unmarshalable file path
 type PrivateKey struct {
 	Path string
 	Data []byte
