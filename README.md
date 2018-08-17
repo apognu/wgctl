@@ -83,6 +83,10 @@ Commands:
   restart [<flags>] <instance>
   status [<flags>] [<instance>]
   info <instance>
+  set <instance> [<settings>...]
+  peer
+    set <instance> <peer>...
+    replace <instance> <peer>...
   key
     private
     public
@@ -146,6 +150,17 @@ Those changes are not persisted, and there is no option to export the active con
 
 # Replace the whole set of peers with the given one
 # wgctl peer replace vpn1 pubkey=sSg9kL+KsMBQpFPO+TXl7A4OKjLb0xWORx7eR3JDjXM= endpoint=192.168.255.254:10000 allowedips=2.2.2.2/24,3.3.3.3/30 keepalive=20 psk=636493c476092bf06806794d6c2d62c990c68a39b71b73019a328a4d646d9e42
+```
+
+### Generate keys to be used by WireGuard
+
+```
+$ wgctl key private
+nAyxQotWfano6/cC9S6fjSRYe9oQ0/GQn2mK9/PXvyg=
+$ wgctl key private | wgctl key public
+OtvPEAa2d3PP0qAT9bm7zxdTLa6i6w2wNrCdziI76Hg=
+$ wgctl key psk
+d9c966f0cf2320d4e67d543e0a0cd3856fc0f065392799fff8e040bed51b3176
 ```
 
 ## Routes and firewall
