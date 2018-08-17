@@ -235,6 +235,14 @@ func Test_UnmarshalIPMask(t *testing.T) {
 	assert.Equal(t, 8, ip.Mask)
 }
 
+func Test_MarshalIPMask(t *testing.T) {
+	ip := IPMask{IP: net.ParseIP("192.168.255.254"), Mask: 24}
+	out, err := ip.MarshalYAML()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "192.168.255.254/24", out)
+}
+
 func Test_UnmarshalIPNet(t *testing.T) {
 	ip := new(IPNet)
 	err := ip.UnmarshalYAML(func(i interface{}) error {
@@ -251,6 +259,14 @@ func Test_UnmarshalIPNet(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "127.0.0.0", ip.IP.String())
+}
+
+func Test_MarshalIPNet(t *testing.T) {
+	_, sub, _ := net.ParseCIDR("192.168.255.254/24")
+	out, err := IPNet(*sub).MarshalYAML()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "192.168.255.0/24", out)
 }
 
 func Test_UnmarshalUDPAddr(t *testing.T) {
@@ -272,7 +288,15 @@ func Test_UnmarshalUDPAddr(t *testing.T) {
 	assert.Equal(t, 12345, addr.Port)
 }
 
-func Test_UnmarshalPrivateKeyFile(t *testing.T) {
+func Test_MarshalUDPAddr(t *testing.T) {
+	addr, _ := net.ResolveUDPAddr("udp", "192.168.255.254:12345")
+	out, err := UDPAddr(*addr).MarshalYAML()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "192.168.255.254:12345", out)
+}
+
+func Test_UnmarshalPrivateKey(t *testing.T) {
 	createPKey(t)
 	key := new(PrivateKey)
 	err := key.UnmarshalYAML(func(i interface{}) error {
@@ -296,6 +320,14 @@ func Test_UnmarshalPrivateKeyFile(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", key.String())
+}
+
+func Test_MarshalPrivateKey(t *testing.T) {
+	key := PrivateKey{Path: "/path/to/private.key", Data: []byte{}}
+	out, err := key.MarshalYAML()
+
+	assert.Nil(t, err)
+	assert.Equal(t, out, "/path/to/private.key")
 }
 
 func Test_UnmarshalKey(t *testing.T) {
@@ -322,6 +354,14 @@ func Test_UnmarshalKey(t *testing.T) {
 	assert.Equal(t, "uJtUEgdOFdszfiVbMVGdd7/la9k7P9+iUHRzJFtVfWc=", key.String())
 }
 
+func Test_MarshalKey(t *testing.T) {
+	key := Key(getKey())
+	out, err := key.MarshalYAML()
+
+	assert.Nil(t, err)
+	assert.Equal(t, out, key.String())
+}
+
 func Test_UnmarshalPSK(t *testing.T) {
 	key := new(PresharedKey)
 
@@ -345,4 +385,12 @@ func Test_UnmarshalPSK(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "bac6b07b5d9a933a6557770bcc81bfe0017a9a690e3cd7f49d0068986ff53e92", key.String())
+}
+
+func Test_MarshalPSK(t *testing.T) {
+	key := getPSK()
+	out, err := key.MarshalYAML()
+
+	assert.Nil(t, err)
+	assert.Equal(t, out, key.String())
 }
