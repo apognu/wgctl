@@ -52,6 +52,9 @@ func main() {
 	kpPeerReplaceInstance := kpPeerReplace.Arg("instance", "name of your WireGuard configuration").Required().String()
 	kpPeerReplacePeer := kpPeerReplace.Arg("peer", "list of key=value to the new peer").Required().StringMap()
 
+	kpExport := kp.Command("export", "export the configuration of an active tunnel to YAML").PreAction(requireRoot)
+	kpExportInstance := kpExport.Arg("instance", "name of your WireGuard configuration").Required().String()
+
 	kpKey := kp.Command("key", "Manage WireGuard keys")
 	kpKeyGenerate := kpKey.Command("private", "generate a new private key")
 	kpKeyPublic := kpKey.Command("public", "compute public key from a private key from stdin")
@@ -81,6 +84,8 @@ func main() {
 		setPeers(*kpPeerReplaceInstance, *kpPeerReplacePeer, true)
 	case kpVersion.FullCommand():
 		version()
+	case kpExport.FullCommand():
+		exportConfig(*kpExportInstance)
 	case kpKeyGenerate.FullCommand():
 		generateKey()
 	case kpKeyPublic.FullCommand():

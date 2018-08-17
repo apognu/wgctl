@@ -15,9 +15,9 @@ func getKey() []byte {
 	return k
 }
 
-func getPSK() []byte {
+func getPSK() *PresharedKey {
 	k, _ := GeneratePSK()
-	return k
+	return &k
 }
 
 func getEndpoint() *UDPAddr {

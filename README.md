@@ -139,7 +139,7 @@ tunnel:
 
 ### Change tunnel configuration on the fly
 
-Those changes are not persisted, and there is no option to export the active configuration (for now). Please note that you can provide a subset of the options shown below.
+Those changes are not persisted, if you want to export the current configuration of a tunnel, use ```export``` below. Please note that you can provide a subset of the options shown below.
 
 ```
 # Change properties on the interface itself
@@ -150,6 +150,35 @@ Those changes are not persisted, and there is no option to export the active con
 
 # Replace the whole set of peers with the given one
 # wgctl peer replace vpn1 pubkey=sSg9kL+KsMBQpFPO+TXl7A4OKjLb0xWORx7eR3JDjXM= endpoint=192.168.255.254:10000 allowedips=2.2.2.2/24,3.3.3.3/30 keepalive=20 psk=636493c476092bf06806794d6c2d62c990c68a39b71b73019a328a4d646d9e42
+```
+
+### Export the configuration of a tunnel
+
+You can export the current configuration of an active tunnel by using the ```wgctl export``` command. If a ```wgctl``` configuration already exists, non-WireGuard properties (descriptions, hooks, etc.) will be merged with the running config. If not, the default values will be used.
+
+Please note that the private key is left blank.
+
+```
+# wgctl export vpn1
+interface:
+  description: Personal VPN server #1
+  address: 192.168.0.1/32
+  listen_port: 42000
+  private_key: /path/to/private.key
+  routes: false
+  post_up:
+    - [ '/usr/bin/notify-send', 'WireGuard tunnel went up', 'A WireGuard tunnel was just brought up. Congrats.' ]
+  pre_down:
+    - [ '/usr/bin/notify-send', 'WireGuard tunnel went down', 'A WireGuard tunnel was just torn down. Congrats.' ]
+peers:
+  - description: VPN gateway at provider X
+    public_key: cyfBMbaJ6kgnDYjio6xqWikvTz2HvpmvSQocRmF/ZD4=
+    preshared_key: e16f1596201850fd4a63680b27f603cb64e67176159be3d8ed78a4403fdb1700
+    endpoint: 1.2.3.4:42000
+    keepalive_interval: 10s
+    allowed_ips:
+      - 192.168.0.0/30
+      - 0.0.0.0/0
 ```
 
 ### Generate keys to be used by WireGuard

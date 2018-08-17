@@ -52,24 +52,25 @@ type Config struct {
 
 // Interface represents a YAML-encodable configuration for a WireGuard interface
 type Interface struct {
-	Description string         `yaml:"description"`
-	Address     *IPMask        `yaml:"address"`
-	ListenPort  int            `yaml:"listen_port"`
-	PrivateKey  PrivateKeyFile `yaml:"private_key"`
-	FWMark      int            `yaml:"fwmark"`
-	PostUp      [][]string     `yaml:"post_up"`
-	PreDown     [][]string     `yaml:"pre_down"`
-	SetUpRoutes *bool          `yaml:"routes"`
+	Description     string         `yaml:"description"`
+	Address         *IPMask        `yaml:"address"`
+	ListenPort      int            `yaml:"listen_port"`
+	PrivateKey      PrivateKeyFile `yaml:"private_key"`
+	_PrivateKeyFile string         `yaml:"-"`
+	FWMark          int            `yaml:"fwmark,omitempty"`
+	PostUp          [][]string     `yaml:"post_up,omitempty"`
+	PreDown         [][]string     `yaml:"pre_down,omitempty"`
+	SetUpRoutes     *bool          `yaml:"routes,omitempty"`
 }
 
 // Peer represents a YAML-encodable configuration for a WireGuard peer
 type Peer struct {
 	Description       string        `yaml:"description"`
 	PublicKey         Key           `yaml:"public_key"`
-	PresharedKey      PresharedKey  `yaml:"preshared_key"`
-	Endpoint          *UDPAddr      `yaml:"endpoint"`
-	AllowedIPS        []IPNet       `yaml:"allowed_ips"`
-	KeepaliveInterval time.Duration `yaml:"keepalive_interval"`
+	PresharedKey      *PresharedKey `yaml:"preshared_key,omitempty"`
+	Endpoint          *UDPAddr      `yaml:"endpoint,omitempty"`
+	AllowedIPS        []IPNet       `yaml:"allowed_ips,omitempty"`
+	KeepaliveInterval time.Duration `yaml:"keepalive_interval,omitempty"`
 }
 
 // ParseConfig unmarshals a Config from a YAML string
@@ -170,6 +171,11 @@ func (ip *IPMask) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not parse IP address: %s", *b)
 }
 
+// MarshalYAML returns the YAML string representation of an IPMask
+func (ip *IPMask) MarshalYAML() (interface{}, error) {
+	return fmt.Sprintf("%s/%d", ip.IP.String(), ip.Mask), nil
+}
+
 // UnmarshalYAML returns an IPNet from a YAML string
 func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
@@ -183,6 +189,12 @@ func (ip *IPNet) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not parse IP address: %s", *b)
 }
 
+// MarshalYAML returns the YAML string representation of an IPNet
+func (ip IPNet) MarshalYAML() (interface{}, error) {
+	cidr, _ := ip.Mask.Size()
+	return fmt.Sprintf("%s/%d", ip.IP, cidr), nil
+}
+
 // UnmarshalYAML returns an UDPAddr from a YAML string
 func (ip *UDPAddr) UnmarshalYAML(f func(interface{}) error) error {
 	b := new(string)
@@ -194,6 +206,11 @@ func (ip *UDPAddr) UnmarshalYAML(f func(interface{}) error) error {
 	}
 
 	return fmt.Errorf("could not parse UDP address: %s", *b)
+}
+
+// MarshalYAML returns the YAML string representation of an UDPAddr
+func (ip UDPAddr) MarshalYAML() (interface{}, error) {
+	return fmt.Sprintf("%s:%d", ip.IP.String(), ip.Port), nil
 }
 
 // UnmarshalYAML returns an private key from a YAML file path
@@ -213,6 +230,11 @@ func (k *PrivateKeyFile) UnmarshalYAML(f func(interface{}) error) error {
 	}
 
 	return fmt.Errorf("could not open private key file")
+}
+
+// MarshalYAML returns the YAML string representation of a PrivateKeyFile
+func (k PrivateKeyFile) MarshalYAML() (interface{}, error) {
+	return "/path/to/private.key", nil
 }
 
 // String returns the string repsentation of a private key
@@ -247,6 +269,11 @@ func (k *Key) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not parse public key")
 }
 
+// MarshalYAML returns the YAML string representation of a Key
+func (k Key) MarshalYAML() (interface{}, error) {
+	return k.String(), nil
+}
+
 // String returns the string representation of a public key
 func (k *Key) String() string {
 	return base64.StdEncoding.EncodeToString(*k)
@@ -278,8 +305,16 @@ func (k *PresharedKey) UnmarshalYAML(f func(interface{}) error) error {
 	return fmt.Errorf("could not parse preshared key")
 }
 
+// MarshalYAML returns the YAML string representation of a PresharedKey
+func (k PresharedKey) MarshalYAML() (interface{}, error) {
+	return k.String(), nil
+}
+
 // String returns the hex string representation of a preshared key
 func (k *PresharedKey) String() string {
+	if k == nil {
+		return ""
+	}
 	return hex.EncodeToString([]byte(*k))
 }
 

@@ -68,7 +68,7 @@ func ParsePeer(p *Peer) wgtypes.PeerConfig {
 		PublicKey: wgtypes.Key(p.PublicKey.Bytes()),
 	}
 
-	if len(p.PresharedKey) > 0 {
+	if p.PresharedKey != nil && len(*p.PresharedKey) > 0 {
 		psk := wgtypes.Key(p.PresharedKey.Bytes())
 		peer.PresharedKey = &psk
 	}
