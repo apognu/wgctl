@@ -7,14 +7,14 @@ import (
 	"os"
 	"strings"
 
-	"github.com/apognu/wgctl/wireguard"
+	"github.com/apognu/wgctl/lib"
 	"github.com/mdlayher/wireguardctrl/wgtypes"
 
 	"github.com/sirupsen/logrus"
 )
 
 func generateKey() {
-	k, err := wireguard.GeneratePrivateKey()
+	k, err := lib.GeneratePrivateKey()
 	if err != nil {
 		logrus.Fatalf("could not generate private key: %s", err.Error())
 	}
@@ -34,13 +34,13 @@ func generatePublicKey() {
 		logrus.Fatalf("the key read from stdin is of an invalid size")
 	}
 
-	k := wireguard.ComputePublicKey(b)
+	k := lib.ComputePublicKey(b)
 
 	fmt.Println(k.String())
 }
 
 func generatePSK() {
-	k, err := wireguard.GeneratePSK()
+	k, err := lib.GeneratePSK()
 	if err != nil {
 		logrus.Fatalf("could not generate private key: %s", err.Error())
 	}

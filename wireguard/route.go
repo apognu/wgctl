@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/apognu/wgctl/lib"
 	sysctl "github.com/lorenzosaino/go-sysctl"
 
 	nl "github.com/vishvananda/netlink"
@@ -30,14 +31,14 @@ func SetRPFilter() error {
 }
 
 // AddDevice adds a new WireGuard link and assigns the given IP address
-func AddDevice(instance string, config *Config) error {
+func AddDevice(instance string, config *lib.Config) error {
 	attrs := nl.NewLinkAttrs()
 	attrs.Name = instance
 
 	err1 := nl.LinkAdd(&WGLink{LinkAttrs: attrs})
 	l, err2 := nl.LinkByName(instance)
-	if anyError(err1, err2) {
-		return fmt.Errorf("could not find recently created device: %s", firstError(err1, err2))
+	if lib.AnyError(err1, err2) {
+		return fmt.Errorf("could not find recently created device: %s", lib.FirstError(err1, err2))
 	}
 
 	if config.Interface.Address != nil {
@@ -61,7 +62,7 @@ func AddDevice(instance string, config *Config) error {
 }
 
 // AddDeviceRoutes sets up the routes for all AllowedIPs in the peer configuration
-func AddDeviceRoutes(instance string, config *Config) error {
+func AddDeviceRoutes(instance string, config *lib.Config) error {
 	l, err := nl.LinkByName(instance)
 	if err != nil {
 		return fmt.Errorf("could not find recently created device: %s", err.Error())
@@ -97,7 +98,7 @@ func AddDeviceRoutes(instance string, config *Config) error {
 }
 
 // AddCatchAllRoute sets up routing to forward all traffic
-func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *Config) error {
+func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *lib.Config) error {
 	r := &nl.Route{Dst: &dst, LinkIndex: l.Attrs().Index, Table: config.Interface.ListenPort}
 	err := nl.RouteAdd(r)
 	if err != nil {

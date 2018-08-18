@@ -13,15 +13,16 @@ import (
 	"github.com/mdlayher/wireguardctrl/wgtypes"
 	"github.com/sirupsen/logrus"
 
+	"github.com/apognu/wgctl/lib"
 	"github.com/apognu/wgctl/wireguard"
 )
 
 func start(instance string, noRoutes bool) {
-	config, err := wireguard.ParseConfig(instance)
+	config, err := lib.ParseConfig(instance)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	instance = wireguard.GetInstanceFromArg(instance)
+	instance = lib.GetInstanceFromArg(instance)
 
 	err = wireguard.AddDevice(instance, config)
 	if err != nil {
@@ -48,11 +49,11 @@ func start(instance string, noRoutes bool) {
 }
 
 func stop(instance string) {
-	config, err := wireguard.ParseConfig(instance)
+	config, err := lib.ParseConfig(instance)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	instance = wireguard.GetInstanceFromArg(instance)
+	instance = lib.GetInstanceFromArg(instance)
 
 	wireguard.DeleteDevice(instance)
 
@@ -82,7 +83,7 @@ func set(instance string, props map[string]string) {
 			}
 			c.FirewallMark = &mark
 		case "privkey":
-			k := new(wireguard.PrivateKey)
+			k := new(lib.PrivateKey)
 			err := k.UnmarshalYAML(func(s interface{}) error {
 				*s.(*string) = "/etc/wireguard/gcp.key"
 				return nil

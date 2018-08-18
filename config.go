@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/apognu/wgctl/lib"
 	"github.com/apognu/wgctl/wireguard"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
@@ -12,24 +13,26 @@ import (
 )
 
 func exportConfig(instance string) {
-	currentConfig, _ := wireguard.ParseConfig(instance)
+	currentConfig, _ := lib.ParseConfig(instance)
 
 	wgdev, rtdev, err := wireguard.GetDevice(instance)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	c := wireguard.Config{}
+	c := lib.Config{}
 
-	addrs, err := nl.AddrList(rtdev, unix.AF_INET)
-	if err == nil && len(addrs) > 0 {
+	addrs4, err4 := nl.AddrList(rtdev, unix.AF_INET)
+	addrs6, err6 := nl.AddrList(rtdev, unix.AF_INET6)
+	if !lib.AnyError(err4, err6) && len(addrs4)+len(addrs6) > 0 {
+		addrs := append(addrs4, addrs6...)
 		ip := addrs[0].IP
 		mask, _ := addrs[0].IPNet.Mask.Size()
 
-		c.Interface.Address = &wireguard.IPMask{IP: ip, Mask: mask}
+		c.Interface.Address = &lib.IPMask{IP: ip, Mask: mask}
 	}
 
-	priv := wireguard.PrivateKey{Path: "/path/to/private.key"}
+	priv := lib.PrivateKey{Path: "/path/to/private.key"}
 	description := ""
 	preDown := [][]string{}
 	postUp := [][]string{}
@@ -50,7 +53,7 @@ func exportConfig(instance string) {
 	c.Interface.PostUp = postUp
 	c.Interface.SetUpRoutes = routes
 
-	peers := make([]*wireguard.Peer, len(wgdev.Peers))
+	peers := make([]*lib.Peer, len(wgdev.Peers))
 	for idx, wgp := range wgdev.Peers {
 		description := ""
 		if currentConfig != nil {
@@ -59,25 +62,25 @@ func exportConfig(instance string) {
 			}
 		}
 
-		p := &wireguard.Peer{
+		p := &lib.Peer{
 			Description:       description,
-			PublicKey:         wireguard.Key(wgp.PublicKey[:]),
+			PublicKey:         lib.Key(wgp.PublicKey[:]),
 			KeepaliveInterval: wgp.PersistentKeepaliveInterval,
 		}
 
-		if wgp.PresharedKey != wireguard.EmptyPSK {
-			psk := wireguard.PresharedKey(wgp.PresharedKey[:])
+		if wgp.PresharedKey != lib.EmptyPSK {
+			psk := lib.PresharedKey(wgp.PresharedKey[:])
 			p.PresharedKey = &psk
 		}
 
 		if wgp.Endpoint != nil {
-			ep := wireguard.UDPAddr(*wgp.Endpoint)
+			ep := lib.UDPAddr(*wgp.Endpoint)
 			p.Endpoint = &ep
 		}
 
-		aips := make([]wireguard.IPNet, len(wgp.AllowedIPs))
+		aips := make([]lib.IPNet, len(wgp.AllowedIPs))
 		for idx, aip := range wgp.AllowedIPs {
-			aips[idx] = wireguard.IPNet(aip)
+			aips[idx] = lib.IPNet(aip)
 		}
 		p.AllowedIPS = aips
 

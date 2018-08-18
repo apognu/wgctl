@@ -3,6 +3,7 @@ package wireguard
 import (
 	"fmt"
 
+	"github.com/apognu/wgctl/lib"
 	"github.com/mdlayher/wireguardctrl"
 	"github.com/mdlayher/wireguardctrl/wgtypes"
 
@@ -18,8 +19,8 @@ func GetDevice(ifname string) (*wgtypes.Device, nl.Link, error) {
 
 	dev, errwg := nlcl.Device(ifname)
 	link, errrt := nl.LinkByName(ifname)
-	if anyError(errwg, errrt) {
-		return nil, nil, fmt.Errorf("could not find device: %s", firstError(errwg, errrt))
+	if lib.AnyError(errwg, errrt) {
+		return nil, nil, fmt.Errorf("could not find device: %s", lib.FirstError(errwg, errrt))
 	}
 
 	return dev, link, nil

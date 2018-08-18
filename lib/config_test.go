@@ -1,9 +1,8 @@
-package wireguard
+package lib
 
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
@@ -37,6 +36,32 @@ peers:
     allowed_ips:
       - 20.30.40.50/32
       - 50.40.30.20/24
+    keepalive_interval: 10
+`
+
+const fullIPv6ConfigYAML = `
+interface:
+  description: Lorem ipsum dolor sit amet
+  address: 2001:db8:0:12::2:1/64
+  listen_port: 23456
+  private_key: /tmp/testing.key
+  fwmark: 12345
+  routes: false
+peers:
+  - description: 'Peer #1'
+    public_key: 7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=
+    preshared_key: 4dcc2c74b23387db09bfc635f2cded65eb375db9bd55a64a8c5f18d26441dbc1
+    endpoint: '[fe80::c002:37ff:fe6C:0]:45000'
+    allowed_ips:
+      - fe80::1234:1/48
+      - fe80::1234:2/128
+    keepalive_interval: 10
+  - description: 'Peer #2'
+    public_key: 4X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=
+    endpoint: '[fe80:b00b:cafe::10]:45001'
+    allowed_ips:
+      - fe80::1234:3/48
+      - fe80::1234:4/128
     keepalive_interval: 10
 `
 
@@ -114,6 +139,39 @@ func Test_ParseFullConfig(t *testing.T) {
 	assert.Equal(t, time.Duration(10), c.Peers[0].KeepaliveInterval)
 }
 
+func Test_ParseFullIPv6Config(t *testing.T) {
+	createPKey(t)
+	c, err := ParseConfigReader(bytes.NewReader([]byte(fullIPv6ConfigYAML)))
+	assert.Nil(t, err)
+
+	addr, sub, _ := net.ParseCIDR("2001:db8:0:12::2:1/64")
+
+	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Interface.Description)
+	assert.Equal(t, addr, c.Interface.Address.IP)
+	assert.Equal(t, 64, c.Interface.Address.Mask)
+	assert.Equal(t, 23456, c.Interface.ListenPort)
+	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", c.Interface.PrivateKey.String())
+	assert.Equal(t, 12345, c.Interface.FWMark)
+	assert.Equal(t, false, *c.Interface.SetUpRoutes)
+
+	assert.Equal(t, 2, len(c.Peers))
+
+	ip, port, _ := net.SplitHostPort("[fe80::c002:37ff:fe6C:0]:45000")
+	p, _ := strconv.Atoi(port)
+	ep := UDPAddr{IP: net.ParseIP(ip), Port: p}
+
+	assert.Equal(t, "Peer #1", c.Peers[0].Description)
+	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", c.Peers[0].PublicKey.String())
+	assert.Equal(t, "4dcc2c74b23387db09bfc635f2cded65eb375db9bd55a64a8c5f18d26441dbc1", c.Peers[0].PresharedKey.String())
+	assert.Equal(t, ep, *c.Peers[0].Endpoint)
+	assert.Equal(t, 2, len(c.Peers[0].AllowedIPS))
+
+	_, sub, _ = net.ParseCIDR("fe80::1234:1/48")
+
+	assert.Equal(t, IPNet(*sub), c.Peers[0].AllowedIPS[0])
+	assert.Equal(t, time.Duration(10), c.Peers[0].KeepaliveInterval)
+}
+
 func Test_ParseMinimalConfig(t *testing.T) {
 	createPKey(t)
 	c, err := ParseConfigReader(bytes.NewReader([]byte(minimalConfigYAML)))
@@ -150,25 +208,25 @@ func Test_ParseConfigWithEmptyPeerKey(t *testing.T) {
 
 func Test_CheckConfig(t *testing.T) {
 	c := &Config{}
-	assert.NotEqual(nil, c.Check(), "")
+	assert.NotEqual(t, nil, c.Check())
 
 	k, _ := base64.StdEncoding.DecodeString("7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=")
 
-	c = &Config{Interface: Interface{PrivateKey: PrivateKey{Data: k}}}
-	assert.NotEqual(nil, c.Check(), "")
+	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k)}}
+	assert.NotNil(t, c.Check())
 
 	c = &Config{Interface: Interface{ListenPort: 10000}}
-	assert.NotEqual(nil, c.Check(), "")
+	assert.NotNil(t, c.Check())
 
 	ipnet := IPMask{IP: net.ParseIP("1.2.3.4"), Mask: 24}
 	c = &Config{Interface: Interface{Address: &ipnet}}
-	assert.NotEqual(nil, c.Check(), "")
+	assert.NotNil(t, c.Check())
 
-	c = &Config{Interface: Interface{Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{&Peer{}}}
-	assert.NotEqual(nil, c.Check(), "")
+	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k), ListenPort: 10000}, Peers: []*Peer{&Peer{Description: "YOP"}}}
+	assert.NotNil(t, c.Check())
 
-	c = &Config{Interface: Interface{PrivateKey: PrivateKey{Data: k}, Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{&Peer{PublicKey: k}}}
-	assert.Equal(t, nil, c.Check(), "")
+	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k), Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{&Peer{PublicKey: k}}}
+	assert.Nil(t, c.Check())
 }
 
 func Test_ParseConfigNoExistFile(t *testing.T) {
@@ -216,181 +274,35 @@ func Test_GetConfigPath(t *testing.T) {
 	assert.Equal(t, "/my/wireguard/config", GetConfigPath())
 }
 
-func Test_UnmarshalIPMask(t *testing.T) {
-	ip := new(IPMask)
-	err := ip.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "not_an_ip"
-		return nil
-	})
+func Test_KeyToBytes(t *testing.T) {
+	bk := GetKey(t)
+	key := Key(bk)
+	k := key.Bytes()
 
-	assert.NotNil(t, err)
-
-	err = ip.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "127.0.0.1/8"
-		return nil
-	})
-
-	assert.Nil(t, err)
-	assert.Equal(t, "127.0.0.1", ip.IP.String())
-	assert.Equal(t, 8, ip.Mask)
+	assert.Equal(t, len(k), len(bk))
+	assert.Equal(t, k[:], bk)
 }
 
-func Test_MarshalIPMask(t *testing.T) {
-	ip := IPMask{IP: net.ParseIP("192.168.255.254"), Mask: 24}
-	out, err := ip.MarshalYAML()
+func Test_PrivateKeyToBytes(t *testing.T) {
+	key, _ := GeneratePrivateKey()
+	bk := key.Bytes()
 
-	assert.Nil(t, err)
-	assert.Equal(t, "192.168.255.254/24", out)
+	assert.Equal(t, len(key.Data), len(bk))
+	assert.Equal(t, key.Data, bk)
 }
 
-func Test_UnmarshalIPNet(t *testing.T) {
-	ip := new(IPNet)
-	err := ip.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "not_an_ip"
-		return nil
-	})
+func Test_PresharedKeyToBytes(t *testing.T) {
+	key := GetPSK(t)
+	bk := key.Bytes()
 
-	assert.NotNil(t, err)
-
-	err = ip.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "127.0.0.1/8"
-		return nil
-	})
-
-	assert.Nil(t, err)
-	assert.Equal(t, "127.0.0.0", ip.IP.String())
+	assert.Equal(t, len(bk), len([]byte(*key)))
+	assert.Equal(t, []byte(*key), bk[:])
 }
 
-func Test_MarshalIPNet(t *testing.T) {
-	_, sub, _ := net.ParseCIDR("192.168.255.254/24")
-	out, err := IPNet(*sub).MarshalYAML()
+func Test_IPMaskTransforms(t *testing.T) {
+	ip, sub, _ := net.ParseCIDR("192.168.255.40/16")
+	mask, _ := sub.Mask.Size()
+	ipmask := IPMask{IP: ip, Mask: mask}
 
-	assert.Nil(t, err)
-	assert.Equal(t, "192.168.255.0/24", out)
-}
-
-func Test_UnmarshalUDPAddr(t *testing.T) {
-	addr := new(UDPAddr)
-	err := addr.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "not_an_ip"
-		return nil
-	})
-
-	assert.NotNil(t, err)
-
-	err = addr.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "127.0.0.1:12345"
-		return nil
-	})
-
-	assert.Nil(t, err)
-	assert.Equal(t, "127.0.0.1", addr.IP.String())
-	assert.Equal(t, 12345, addr.Port)
-}
-
-func Test_MarshalUDPAddr(t *testing.T) {
-	addr, _ := net.ResolveUDPAddr("udp", "192.168.255.254:12345")
-	out, err := UDPAddr(*addr).MarshalYAML()
-
-	assert.Nil(t, err)
-	assert.Equal(t, "192.168.255.254:12345", out)
-}
-
-func Test_UnmarshalPrivateKey(t *testing.T) {
-	createPKey(t)
-	key := new(PrivateKey)
-	err := key.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "/etc/hosts"
-		return nil
-	})
-
-	assert.NotNil(t, err)
-
-	err = key.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "/not/a/file"
-		return nil
-	})
-
-	assert.NotNil(t, err)
-
-	err = key.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "/tmp/testing.key"
-		return nil
-	})
-
-	assert.Nil(t, err)
-	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", key.String())
-}
-
-func Test_MarshalPrivateKey(t *testing.T) {
-	key := PrivateKey{Path: "/path/to/private.key", Data: []byte{}}
-	out, err := key.MarshalYAML()
-
-	assert.Nil(t, err)
-	assert.Equal(t, out, "/path/to/private.key")
-}
-
-func Test_UnmarshalKey(t *testing.T) {
-	key := new(Key)
-	err := key.UnmarshalYAML(func(i interface{}) error {
-		return fmt.Errorf("wrong data type")
-	})
-
-	assert.NotNil(t, err)
-
-	err = key.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "not_a_key"
-		return nil
-	})
-
-	assert.NotNil(t, err)
-
-	err = key.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "uJtUEgdOFdszfiVbMVGdd7/la9k7P9+iUHRzJFtVfWc="
-		return nil
-	})
-
-	assert.Nil(t, err)
-	assert.Equal(t, "uJtUEgdOFdszfiVbMVGdd7/la9k7P9+iUHRzJFtVfWc=", key.String())
-}
-
-func Test_MarshalKey(t *testing.T) {
-	key := Key(getKey())
-	out, err := key.MarshalYAML()
-
-	assert.Nil(t, err)
-	assert.Equal(t, out, key.String())
-}
-
-func Test_UnmarshalPSK(t *testing.T) {
-	key := new(PresharedKey)
-
-	err := key.UnmarshalYAML(func(i interface{}) error {
-		return fmt.Errorf("wrong data type")
-	})
-
-	assert.NotNil(t, err)
-
-	err = key.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "not_a_key"
-		return nil
-	})
-
-	assert.NotNil(t, err)
-
-	err = key.UnmarshalYAML(func(i interface{}) error {
-		*i.(*string) = "bac6b07b5d9a933a6557770bcc81bfe0017a9a690e3cd7f49d0068986ff53e92"
-		return nil
-	})
-
-	assert.Nil(t, err)
-	assert.Equal(t, "bac6b07b5d9a933a6557770bcc81bfe0017a9a690e3cd7f49d0068986ff53e92", key.String())
-}
-
-func Test_MarshalPSK(t *testing.T) {
-	key := getPSK()
-	out, err := key.MarshalYAML()
-
-	assert.Nil(t, err)
-	assert.Equal(t, out, key.String())
+	assert.Equal(t, "192.168.255.40/16", ipmask.String())
 }

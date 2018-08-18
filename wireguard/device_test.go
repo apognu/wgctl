@@ -2,62 +2,38 @@ package wireguard
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 	"testing"
 	"time"
 
+	"github.com/apognu/wgctl/lib"
 	"github.com/stretchr/testify/assert"
 )
 
-func getKey() []byte {
-	k, _ := GeneratePrivateKey()
-	return k
-}
-
-func getPSK() *PresharedKey {
-	k, _ := GeneratePSK()
-	return &k
-}
-
-func getEndpoint() *UDPAddr {
-	ip := []byte{byte(rand.Intn(255)), byte(rand.Intn(255)), byte(rand.Intn(255)), byte(rand.Intn(255))}
-	port := rand.Intn(65000)
-	return &UDPAddr{IP: net.IP(ip), Port: port}
-}
-
-func getSubnet() IPNet {
-	ip := net.IP([]byte{byte(rand.Intn(255)), byte(rand.Intn(255)), byte(rand.Intn(255)), byte(rand.Intn(255))})
-	mask := net.CIDRMask(rand.Intn(32), 32)
-	sub := ip.Mask(mask)
-
-	return IPNet(net.IPNet{IP: sub, Mask: mask})
-}
-
 func Test_SetDevice(t *testing.T) {
 	instance := "wgtest"
-	c := &Config{
-		Interface: Interface{
+	c := &lib.Config{
+		Interface: lib.Interface{
 			ListenPort: 12345,
 			FWMark:     54321,
-			PrivateKey: PrivateKey{Data: getKey()},
+			PrivateKey: lib.NewPrivateKey(lib.GetKey(t)),
 		},
-		Peers: []*Peer{
+		Peers: []*lib.Peer{
 			{
-				PublicKey:         getKey(),
-				Endpoint:          getEndpoint(),
+				PublicKey:         lib.GetKey(t),
+				Endpoint:          lib.GetEndpoint(t),
 				KeepaliveInterval: 30 * time.Second,
 			},
 			{
-				PublicKey:    getKey(),
-				PresharedKey: getPSK(),
-				AllowedIPS:   []IPNet{getSubnet(), getSubnet()},
+				PublicKey:    lib.GetKey(t),
+				PresharedKey: lib.GetPSK(t),
+				AllowedIPS:   []lib.IPNet{lib.GetSubnet(t), lib.GetSubnet(t)},
 			},
 			{
-				PublicKey:    getKey(),
-				Endpoint:     getEndpoint(),
-				PresharedKey: getPSK(),
-				AllowedIPS:   []IPNet{getSubnet()},
+				PublicKey:    lib.GetKey(t),
+				Endpoint:     lib.GetEndpoint(t),
+				PresharedKey: lib.GetPSK(t),
+				AllowedIPS:   []lib.IPNet{lib.GetSubnet(t)},
 			},
 		},
 	}
@@ -87,7 +63,7 @@ func Test_SetDevice(t *testing.T) {
 		}
 		assert.Equal(t, len(cp.AllowedIPS), len(p.AllowedIPs))
 		assert.Equal(t, cp.KeepaliveInterval, p.PersistentKeepaliveInterval)
-		if p.PresharedKey == EmptyPSK {
+		if p.PresharedKey == lib.EmptyPSK {
 			assert.Nil(t, cp.PresharedKey)
 		} else {
 			assert.Equal(t, cp.PresharedKey.String(), fmt.Sprintf("%x", p.PresharedKey[:]))

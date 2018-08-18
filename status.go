@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/apognu/wgctl/lib"
 	"github.com/apognu/wgctl/wireguard"
 	"github.com/sirupsen/logrus"
 	nl "github.com/vishvananda/netlink"
@@ -46,20 +47,20 @@ func status(instance string, short bool, all bool) {
 }
 
 func statusAll(short bool) {
-	instances, err := filepath.Glob(fmt.Sprintf("%s/*.yml", wireguard.GetConfigPath()))
+	instances, err := filepath.Glob(fmt.Sprintf("%s/*.yml", lib.GetConfigPath()))
 	if err != nil {
 		logrus.Fatalf("could not enumerate your configurations: %s", err.Error())
 	}
 
 	for _, path := range instances {
-		i := wireguard.GetInstanceFromArg(path)
+		i := lib.GetInstanceFromArg(path)
 
 		status(i, short, true)
 	}
 }
 
 func info(instance string) {
-	config, err := wireguard.ParseConfig(instance)
+	config, err := lib.ParseConfig(instance)
 	if err != nil {
 		logrus.Fatalf("could not parse configuration: %s", err.Error())
 	}
@@ -99,7 +100,7 @@ func info(instance string) {
 				}
 			}
 
-			PrintAttr(2, "pre-shared key", FormatPSK(p.PresharedKey), p.PresharedKey != wireguard.EmptyPSK)
+			PrintAttr(2, "pre-shared key", FormatPSK(p.PresharedKey), p.PresharedKey != lib.EmptyPSK)
 
 			if len(p.AllowedIPs) > 0 {
 				ips := make([]string, len(p.AllowedIPs))

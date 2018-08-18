@@ -1,4 +1,4 @@
-package wireguard
+package lib
 
 import (
 	"crypto/rand"
@@ -9,15 +9,23 @@ import (
 	"golang.org/x/crypto/curve25519"
 )
 
+// EmptyPSK is the byte representation used when no preshared key is set on a peer
+var EmptyPSK = [32]byte{
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+}
+
 // GeneratePrivateKey generates a new Curve25519 private key from crypto/rand
-func GeneratePrivateKey() (Key, error) {
+func GeneratePrivateKey() (*PrivateKey, error) {
 	priv := new([wgtypes.KeyLen]byte)
 	_, err := io.ReadFull(rand.Reader, priv[:])
 	if err != nil {
-		return Key{}, fmt.Errorf("could not generate key: %s", err.Error())
+		return nil, fmt.Errorf("could not generate key: %s", err.Error())
 	}
 
-	return Key(priv[:]), nil
+	return &PrivateKey{Data: *priv}, nil
 }
 
 // ComputePublicKey computes the matching Curve25519 public key from a private key

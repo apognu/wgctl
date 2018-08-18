@@ -1,4 +1,4 @@
-package wireguard
+package lib
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ func Test_GeneratePrivateKey(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Nil(t, err)
-	assert.Equal(t, wgtypes.KeyLen, len(k))
+	assert.Equal(t, wgtypes.KeyLen, len(k.Data))
 	assert.NotEmpty(t, EmptyPSK, k)
 
 	rand.Reader = bytes.NewReader([]byte{})
@@ -28,7 +28,7 @@ func Test_GeneratePrivateKey(t *testing.T) {
 
 func Test_ComputePublicKey(t *testing.T) {
 	priv, _ := GeneratePrivateKey()
-	k := ComputePublicKey(priv)
+	k := ComputePublicKey(priv.Data[:])
 
 	assert.Equal(t, wgtypes.KeyLen, len(k))
 	assert.NotEqual(t, EmptyPSK, k)

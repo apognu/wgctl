@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/apognu/wgctl/lib"
 	"github.com/mdlayher/wireguardctrl"
 	"github.com/mdlayher/wireguardctrl/wgtypes"
 	"github.com/sirupsen/logrus"
@@ -40,7 +41,7 @@ func SetDevice(instance string, config wgtypes.Config, replacePeers bool) error 
 }
 
 // ConfigureDevice sets all WireGuard parameter in a Config
-func ConfigureDevice(instance string, config *Config, replacePeers bool) error {
+func ConfigureDevice(instance string, config *lib.Config, replacePeers bool) error {
 	priv := wgtypes.Key(config.Interface.PrivateKey.Bytes())
 
 	c := wgtypes.Config{
@@ -63,7 +64,7 @@ func ConfigureDevice(instance string, config *Config, replacePeers bool) error {
 }
 
 // ParsePeer creates a Netlink-compatible view of a peer
-func ParsePeer(p *Peer) wgtypes.PeerConfig {
+func ParsePeer(p *lib.Peer) wgtypes.PeerConfig {
 	peer := wgtypes.PeerConfig{
 		PublicKey: wgtypes.Key(p.PublicKey.Bytes()),
 	}
