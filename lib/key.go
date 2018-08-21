@@ -32,10 +32,8 @@ func GeneratePrivateKey() (*PrivateKey, error) {
 func ComputePublicKey(b []byte) Key {
 	priv := new([wgtypes.KeyLen]byte)
 	pub := new([wgtypes.KeyLen]byte)
-	for idx, b := range b {
-		priv[idx] = b
-	}
 
+	copy(priv[:], b)
 	curve25519.ScalarBaseMult(pub, priv)
 
 	return Key(pub[:])

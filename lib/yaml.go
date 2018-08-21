@@ -85,9 +85,7 @@ func (k *PrivateKey) UnmarshalYAML(f func(interface{}) error) error {
 			}
 
 			bk := new([wgtypes.KeyLen]byte)
-			for idx, b := range key {
-				bk[idx] = b
-			}
+			copy(bk[:], key)
 
 			*k = PrivateKey{
 				Path: *b,

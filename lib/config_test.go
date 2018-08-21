@@ -111,7 +111,7 @@ func Test_ParseFullConfig(t *testing.T) {
 	c, err := ParseConfigReader(bytes.NewReader([]byte(fullConfigYAML)))
 	assert.Nil(t, err)
 
-	addr, sub, _ := net.ParseCIDR("1.2.3.4/24")
+	addr, _, _ := net.ParseCIDR("1.2.3.4/24")
 
 	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Interface.Description)
 	assert.Equal(t, addr, c.Interface.Address.IP)
@@ -133,7 +133,7 @@ func Test_ParseFullConfig(t *testing.T) {
 	assert.Equal(t, ep, *c.Peers[0].Endpoint)
 	assert.Equal(t, 2, len(c.Peers[0].AllowedIPS))
 
-	_, sub, _ = net.ParseCIDR("20.30.40.50/32")
+	_, sub, _ := net.ParseCIDR("20.30.40.50/32")
 
 	assert.Equal(t, IPNet(*sub), c.Peers[0].AllowedIPS[0])
 	assert.Equal(t, time.Duration(10), c.Peers[0].KeepaliveInterval)

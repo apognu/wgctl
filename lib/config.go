@@ -32,9 +32,8 @@ type PrivateKey struct {
 // NewPrivateKey retirns a PrivateKey from a []byte
 func NewPrivateKey(bk []byte) PrivateKey {
 	k := new([wgtypes.KeyLen]byte)
-	for idx, b := range bk {
-		k[idx] = b
-	}
+	copy(k[:], bk)
+
 	return PrivateKey{Data: *k}
 }
 
@@ -196,7 +195,7 @@ func (c *Config) GetPeer(publicKey string) *Peer {
 }
 
 // GetConfigPath returns the directory where the configuration files should be looked for
-// This path can be overriden by setting the WGCTL_CONFIG_PATH environment variable
+// This path can be overridden by setting the WGCTL_CONFIG_PATH environment variable
 func GetConfigPath() string {
 	if len(strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))) > 0 {
 		return strings.TrimSpace(os.Getenv("WGCTL_CONFIG_PATH"))

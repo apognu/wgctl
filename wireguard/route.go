@@ -43,7 +43,7 @@ func AddDevice(instance string, config *lib.Config) error {
 
 	if config.Interface.Address != nil {
 		ip := config.Interface.Address
-		addr, err := nl.ParseAddr(fmt.Sprintf("%s", ip.String()))
+		addr, err := nl.ParseAddr(ip.String())
 		if err != nil {
 			return fmt.Errorf("could not set device's IP address: %s", err.Error())
 		}

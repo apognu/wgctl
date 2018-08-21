@@ -29,7 +29,6 @@ func Test_AddWrongDevice(t *testing.T) {
 	DeleteDevice("wgtest")
 }
 
-// TODO: Add IPv6 tests
 func Test_AddDevice(t *testing.T) {
 	instance := "wgtest"
 	c := &lib.Config{
@@ -52,7 +51,6 @@ func Test_AddDevice(t *testing.T) {
 	DeleteDevice(instance)
 }
 
-// TODO: Add IPv6 tests
 func Test_AddDeviceRoutes(t *testing.T) {
 	_, sub1, _ := net.ParseCIDR("198.18.201.0/24")
 	_, sub2, _ := net.ParseCIDR("198.18.202.0/24")
@@ -65,7 +63,7 @@ func Test_AddDeviceRoutes(t *testing.T) {
 			Address: &lib.IPMask{IP: net.ParseIP("198.18.100.1"), Mask: 24},
 		},
 		Peers: []*lib.Peer{
-			&lib.Peer{AllowedIPS: []lib.IPNet{subn1, subn2}},
+			{AllowedIPS: []lib.IPNet{subn1, subn2}},
 		},
 	}
 
@@ -74,6 +72,7 @@ func Test_AddDeviceRoutes(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, link, err := GetDevice(instance)
+	assert.Nil(t, err)
 
 	routes, err := nl.RouteList(link, unix.AF_INET)
 	assert.Nil(t, err)
@@ -82,7 +81,6 @@ func Test_AddDeviceRoutes(t *testing.T) {
 	DeleteDevice(instance)
 }
 
-// TODO: Add IPv6 tests
 func Test_AddDefaultRoutes(t *testing.T) {
 	_, sub1, _ := net.ParseCIDR("0.0.0.0/0")
 	subn1 := lib.IPNet(*sub1)
@@ -94,7 +92,7 @@ func Test_AddDefaultRoutes(t *testing.T) {
 			ListenPort: 12345,
 		},
 		Peers: []*lib.Peer{
-			&lib.Peer{AllowedIPS: []lib.IPNet{subn1}},
+			{AllowedIPS: []lib.IPNet{subn1}},
 		},
 	}
 
@@ -103,6 +101,7 @@ func Test_AddDefaultRoutes(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, link, err := GetDevice(instance)
+	assert.Nil(t, err)
 
 	routes, err := nl.RouteList(link, unix.AF_INET)
 	assert.Nil(t, err)
