@@ -144,7 +144,7 @@ func Test_ParseFullIPv6Config(t *testing.T) {
 	c, err := ParseConfigReader(bytes.NewReader([]byte(fullIPv6ConfigYAML)))
 	assert.Nil(t, err)
 
-	addr, sub, _ := net.ParseCIDR("2001:db8:0:12::2:1/64")
+	addr, _, _ := net.ParseCIDR("2001:db8:0:12::2:1/64")
 
 	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Interface.Description)
 	assert.Equal(t, addr, c.Interface.Address.IP)
@@ -166,7 +166,7 @@ func Test_ParseFullIPv6Config(t *testing.T) {
 	assert.Equal(t, ep, *c.Peers[0].Endpoint)
 	assert.Equal(t, 2, len(c.Peers[0].AllowedIPS))
 
-	_, sub, _ = net.ParseCIDR("fe80::1234:1/48")
+	_, sub, _ := net.ParseCIDR("fe80::1234:1/48")
 
 	assert.Equal(t, IPNet(*sub), c.Peers[0].AllowedIPS[0])
 	assert.Equal(t, time.Duration(10), c.Peers[0].KeepaliveInterval)
@@ -222,10 +222,10 @@ func Test_CheckConfig(t *testing.T) {
 	c = &Config{Interface: Interface{Address: &ipnet}}
 	assert.NotNil(t, c.Check())
 
-	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k), ListenPort: 10000}, Peers: []*Peer{&Peer{Description: "YOP"}}}
+	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k), ListenPort: 10000}, Peers: []*Peer{{Description: "YOP"}}}
 	assert.NotNil(t, c.Check())
 
-	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k), Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{&Peer{PublicKey: k}}}
+	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k), Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{{PublicKey: k}}}
 	assert.Nil(t, c.Check())
 }
 
