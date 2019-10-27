@@ -5,14 +5,14 @@ import (
 	"net"
 
 	"github.com/apognu/wgctl/lib"
-	"github.com/mdlayher/wireguardctrl"
-	"github.com/mdlayher/wireguardctrl/wgtypes"
 	"github.com/sirupsen/logrus"
+	"golang.zx2c4.com/wireguard/wgctrl"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 // SetFWMark changes the firewall mark on a specified WireGuard device
 func SetFWMark(instance string, fwmark int) error {
-	nlcl, err := wireguardctrl.New()
+	nlcl, err := wgctrl.New()
 	if err != nil {
 		logrus.Fatalf("could not create wireguard client: %s", err.Error())
 	}
@@ -25,7 +25,7 @@ func SetFWMark(instance string, fwmark int) error {
 // SetDevice sets individual properties on a wireguard device without creating low-level
 // interfaces.
 func SetDevice(instance string, config wgtypes.Config, replacePeers bool) error {
-	nlcl, err := wireguardctrl.New()
+	nlcl, err := wgctrl.New()
 	if err != nil {
 		return fmt.Errorf("could not create wireguard client: %s", err.Error())
 	}

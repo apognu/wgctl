@@ -3,7 +3,7 @@
 [![CI Status](https://img.shields.io/travis/apognu/wgctl/master.svg?style=flat-square)](https://travis-ci.org/apognu/wgctl)
 [![Coverage Status](https://img.shields.io/coveralls/apognu/wgctl/master.svg?style=flat-square)](https://coveralls.io/github/apognu/wgctl?branch=master)
 
-This is a personal project to allow WireGuard to be configured through the use of YAML files. It uses Netlink (through [wireguardctrl](https://github.com/mdlayher/wireguardctrl)) under the hood for all interaction with the system.
+This is a personal project to allow WireGuard to be configured through the use of YAML files. It uses Netlink (through [wgctrl](https://golang.zx2c4.com/wireguard/wgctrl)) under the hood for all interaction with the system.
 
 This tool is very opinionated and designed for my own use (working on that), it _might_ not be what you're looking for.
 

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mdlayher/wireguardctrl/wgtypes"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"github.com/sirupsen/logrus"
 
 	"github.com/apognu/wgctl/lib"

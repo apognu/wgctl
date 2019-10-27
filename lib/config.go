@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mdlayher/wireguardctrl/wgtypes"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -104,8 +104,8 @@ func (ip IPMask) String() string {
 
 // Config represents a YAML-encodable configuration for a WireGuard tunnel
 type Config struct {
-	Interface `yaml:"interface"`
-	Peers     []*Peer `yaml:"peers"`
+	Interface Interface `yaml:"interface"`
+	Peers     []*Peer   `yaml:"peers"`
 }
 
 // Interface represents a YAML-encodable configuration for a WireGuard interface

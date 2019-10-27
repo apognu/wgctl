@@ -8,7 +8,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/mdlayher/wireguardctrl/wgtypes"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 // UnmarshalYAML returns an IPMask from a YAML string

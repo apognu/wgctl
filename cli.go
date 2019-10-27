@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/mdlayher/wireguardctrl/wgtypes"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"code.cloudfoundry.org/bytefmt"
 	"github.com/fatih/color"

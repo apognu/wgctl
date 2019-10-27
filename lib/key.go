@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/mdlayher/wireguardctrl/wgtypes"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"golang.org/x/crypto/curve25519"
 )
 

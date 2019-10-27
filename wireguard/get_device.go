@@ -4,15 +4,15 @@ import (
 	"fmt"
 
 	"github.com/apognu/wgctl/lib"
-	"github.com/mdlayher/wireguardctrl"
-	"github.com/mdlayher/wireguardctrl/wgtypes"
+	"golang.zx2c4.com/wireguard/wgctrl"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	nl "github.com/vishvananda/netlink"
 )
 
 // GetDevice returns the WireGuard interface and the link device for an interface name
 func GetDevice(ifname string) (*wgtypes.Device, nl.Link, error) {
-	nlcl, err := wireguardctrl.New()
+	nlcl, err := wgctrl.New()
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create wireguard client: %s", err.Error())
 	}
