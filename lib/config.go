@@ -104,30 +104,26 @@ func (ip IPMask) String() string {
 
 // Config represents a YAML-encodable configuration for a WireGuard tunnel
 type Config struct {
-	Interface Interface `yaml:"interface"`
-	Peers     []*Peer   `yaml:"peers"`
-}
-
-// Interface represents a YAML-encodable configuration for a WireGuard interface
-type Interface struct {
 	Description string     `yaml:"description"`
-	Address     *IPMask    `yaml:"address"`
-	ListenPort  int        `yaml:"listen_port"`
 	PrivateKey  PrivateKey `yaml:"private_key"`
-	FWMark      int        `yaml:"fwmark,omitempty"`
-	PostUp      [][]string `yaml:"post_up,omitempty"`
-	PreDown     [][]string `yaml:"pre_down,omitempty"`
-	SetUpRoutes *bool      `yaml:"routes,omitempty"`
+	Self        *Peer      `yaml:"-"`
+	Peers       []*Peer    `yaml:"peers"`
 }
 
 // Peer represents a YAML-encodable configuration for a WireGuard peer
 type Peer struct {
 	Description       string        `yaml:"description"`
+	Address           *IPMask       `yaml:"address"`
+	ListenPort        int           `yaml:"listen_port"`
 	PublicKey         Key           `yaml:"public_key"`
 	PresharedKey      *PresharedKey `yaml:"preshared_key,omitempty"`
 	Endpoint          *UDPAddr      `yaml:"endpoint,omitempty"`
 	AllowedIPS        []IPNet       `yaml:"allowed_ips,omitempty"`
 	KeepaliveInterval time.Duration `yaml:"keepalive_interval,omitempty"`
+	FWMark            int           `yaml:"fwmark,omitempty"`
+	PostUp            [][]string    `yaml:"post_up,omitempty"`
+	PreDown           [][]string    `yaml:"pre_down,omitempty"`
+	SetUpRoutes       *bool         `yaml:"routes,omitempty"`
 }
 
 // ParseConfig unmarshals a Config from a YAML string
@@ -164,21 +160,34 @@ func ParseConfigReader(config io.Reader) (*Config, error) {
 // Check verifies that all mandatory config directive have been given for a Config
 // It also sets default values for some fields
 func (c *Config) Check() error {
-	if c.Interface.SetUpRoutes == nil {
-		v := true
-		c.Interface.SetUpRoutes = &v
-	}
-	if c.Interface.PrivateKey.Data == EmptyPSK {
+	if c.PrivateKey.Data == EmptyPSK {
 		return fmt.Errorf("'private_key' must be provided")
 	}
-	if c.Interface.ListenPort == 0 {
-		return fmt.Errorf("'listen_port' must be provided")
-	}
 
-	for _, p := range c.Peers {
+	for idx, p := range c.Peers {
 		if len(p.PublicKey) != wgtypes.KeyLen {
 			return fmt.Errorf("peer's 'public_key' must be provided")
 		}
+
+		privkey := c.PrivateKey.Bytes()
+		pubkey := p.PublicKey.Bytes()
+
+		if bytes.Equal(ComputePublicKey(privkey[:]), pubkey[:]) {
+			c.Self = p
+			c.Peers = append(c.Peers[:idx], c.Peers[idx+1:]...)
+		}
+	}
+
+	if c.Self == nil {
+		return fmt.Errorf("could not find self in peer list")
+	}
+
+	if c.Self.SetUpRoutes == nil {
+		v := true
+		c.Self.SetUpRoutes = &v
+	}
+	if c.Self.ListenPort == 0 {
+		return fmt.Errorf("'listen_port' must be provided")
 	}
 
 	return nil

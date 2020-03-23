@@ -13,10 +13,10 @@ import (
 func Test_SetDevice(t *testing.T) {
 	instance := "wgtest"
 	c := &lib.Config{
-		Interface: lib.Interface{
+		PrivateKey: lib.NewPrivateKey(lib.GetKey(t)),
+		Self: &lib.Peer{
 			ListenPort: 12345,
 			FWMark:     54321,
-			PrivateKey: lib.NewPrivateKey(lib.GetKey(t)),
 		},
 		Peers: []*lib.Peer{
 			{
@@ -46,9 +46,8 @@ func Test_SetDevice(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, instance, dev.Name)
-	assert.Equal(t, c.Interface.ListenPort, dev.ListenPort)
-	assert.Equal(t, c.Interface.FWMark, dev.FirewallMark)
-	// assert.Equal(t, c.Interface.PrivateKey.String(), dev.PrivateKey.String())
+	assert.Equal(t, c.Self.ListenPort, dev.ListenPort)
+	assert.Equal(t, c.Self.FWMark, dev.FirewallMark)
 
 	assert.Equal(t, len(c.Peers), len(dev.Peers))
 

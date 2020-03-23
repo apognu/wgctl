@@ -42,12 +42,12 @@ func SetDevice(instance string, config wgtypes.Config, replacePeers bool) error 
 
 // ConfigureDevice sets all WireGuard parameter in a Config
 func ConfigureDevice(instance string, config *lib.Config, replacePeers bool) error {
-	priv := wgtypes.Key(config.Interface.PrivateKey.Bytes())
+	priv := wgtypes.Key(config.PrivateKey.Bytes())
 
 	c := wgtypes.Config{
 		PrivateKey:   &priv,
-		ListenPort:   &config.Interface.ListenPort,
-		FirewallMark: &config.Interface.FWMark,
+		ListenPort:   &config.Self.ListenPort,
+		FirewallMark: &config.Self.FWMark,
 		ReplacePeers: replacePeers,
 	}
 

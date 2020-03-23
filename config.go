@@ -20,7 +20,9 @@ func exportConfig(instance string) {
 		logrus.Fatal(err)
 	}
 
-	c := lib.Config{}
+	c := lib.Config{
+		Self: &lib.Peer{},
+	}
 
 	addrs4, err4 := nl.AddrList(rtdev, unix.AF_INET)
 	addrs6, err6 := nl.AddrList(rtdev, unix.AF_INET6)
@@ -29,7 +31,7 @@ func exportConfig(instance string) {
 		ip := addrs[0].IP
 		mask, _ := addrs[0].IPNet.Mask.Size()
 
-		c.Interface.Address = &lib.IPMask{IP: ip, Mask: mask}
+		c.Self.Address = &lib.IPMask{IP: ip, Mask: mask}
 	}
 
 	priv := lib.PrivateKey{Path: "/path/to/private.key"}
@@ -38,20 +40,20 @@ func exportConfig(instance string) {
 	postUp := [][]string{}
 	routes := new(bool)
 	if currentConfig != nil {
-		priv = currentConfig.Interface.PrivateKey
-		description = currentConfig.Interface.Description
-		preDown = currentConfig.Interface.PreDown
-		postUp = currentConfig.Interface.PostUp
-		routes = currentConfig.Interface.SetUpRoutes
+		priv = currentConfig.PrivateKey
+		description = currentConfig.Description
+		preDown = currentConfig.Self.PreDown
+		postUp = currentConfig.Self.PostUp
+		routes = currentConfig.Self.SetUpRoutes
 	}
 
-	c.Interface.Description = description
-	c.Interface.PrivateKey = priv
-	c.Interface.ListenPort = wgdev.ListenPort
-	c.Interface.FWMark = wgdev.FirewallMark
-	c.Interface.PreDown = preDown
-	c.Interface.PostUp = postUp
-	c.Interface.SetUpRoutes = routes
+	c.Description = description
+	c.PrivateKey = priv
+	c.Self.ListenPort = wgdev.ListenPort
+	c.Self.FWMark = wgdev.FirewallMark
+	c.Self.PreDown = preDown
+	c.Self.PostUp = postUp
+	c.Self.SetUpRoutes = routes
 
 	peers := make([]*lib.Peer, len(wgdev.Peers))
 	for idx, wgp := range wgdev.Peers {

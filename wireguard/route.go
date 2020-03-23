@@ -41,8 +41,8 @@ func AddDevice(instance string, config *lib.Config) error {
 		return fmt.Errorf("could not find recently created device: %s", lib.FirstError(err1, err2))
 	}
 
-	if config.Interface.Address != nil {
-		ip := config.Interface.Address
+	if config.Self != nil && config.Self.Address != nil {
+		ip := config.Self.Address
 		addr, err := nl.ParseAddr(ip.String())
 		if err != nil {
 			return fmt.Errorf("could not set device's IP address: %s", err.Error())
@@ -69,10 +69,14 @@ func AddDeviceRoutes(instance string, config *lib.Config) error {
 	}
 
 	for _, p := range config.Peers {
+		if p == config.Self {
+			continue
+		}
+
 		for _, ip := range p.AllowedIPS {
 			sub := net.IPNet(ip)
 			if strings.HasSuffix(sub.String(), "/0") {
-				err := SetFWMark(instance, config.Interface.ListenPort)
+				err := SetFWMark(instance, config.Self.ListenPort)
 				if err != nil {
 					return err
 				}
@@ -99,7 +103,7 @@ func AddDeviceRoutes(instance string, config *lib.Config) error {
 
 // AddCatchAllRoute sets up routing to forward all traffic
 func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *lib.Config) error {
-	r := &nl.Route{Dst: &dst, LinkIndex: l.Attrs().Index, Table: config.Interface.ListenPort}
+	r := &nl.Route{Dst: &dst, LinkIndex: l.Attrs().Index, Table: config.Self.ListenPort}
 	err := nl.RouteAdd(r)
 	if err != nil {
 		return fmt.Errorf("could not add route: %s", err.Error())
@@ -116,9 +120,9 @@ func AddCatchAllRoute(l nl.Link, dst net.IPNet, config *lib.Config) error {
 	}
 
 	rule = nl.NewRule()
-	rule.Mark = config.Interface.ListenPort
+	rule.Mark = config.Self.ListenPort
 	rule.Invert = true
-	rule.Table = config.Interface.ListenPort
+	rule.Table = config.Self.ListenPort
 	rule.Priority = 32001
 
 	err = nl.RuleAdd(rule)

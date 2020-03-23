@@ -70,8 +70,8 @@ func info(instance string) {
 	}
 
 	description := "<no description provided>"
-	if len(config.Interface.Description) > 0 {
-		description = config.Interface.Description
+	if len(config.Description) > 0 {
+		description = config.Description
 	}
 
 	PrintSection(0, "tunnel", description, tunnelColor)

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"golang.org/x/crypto/curve25519"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 // EmptyPSK is the byte representation used when no preshared key is set on a peer

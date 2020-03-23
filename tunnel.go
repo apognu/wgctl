@@ -35,7 +35,7 @@ func start(instance string, noRoutes, foreground bool) {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	if !noRoutes && *config.Interface.SetUpRoutes {
+	if !noRoutes && *config.Self.SetUpRoutes {
 		err = wireguard.AddDeviceRoutes(instance, config)
 		if err != nil {
 			logrus.Fatal(err)
@@ -44,8 +44,8 @@ func start(instance string, noRoutes, foreground bool) {
 
 	Up("tunnel '%s' has been brought up", instance)
 
-	if len(config.Interface.PostUp) > 0 {
-		for _, cmdSpec := range config.Interface.PostUp {
+	if len(config.Self.PostUp) > 0 {
+		for _, cmdSpec := range config.Self.PostUp {
 			execute(cmdSpec)
 		}
 	}
@@ -69,8 +69,8 @@ func stop(instance string) {
 
 	wireguard.DeleteDevice(instance)
 
-	if len(config.Interface.PreDown) > 0 {
-		for _, cmdSpec := range config.Interface.PreDown {
+	if len(config.Self.PreDown) > 0 {
+		for _, cmdSpec := range config.Self.PreDown {
 			execute(cmdSpec)
 		}
 	}

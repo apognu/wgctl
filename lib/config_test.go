@@ -14,14 +14,15 @@ import (
 )
 
 const fullConfigYAML = `
-interface:
-  description: Lorem ipsum dolor sit amet
-  address: 1.2.3.4/24
-  listen_port: 23456
-  private_key: /tmp/testing.key
-  fwmark: 12345
-  routes: false
+description: Lorem ipsum dolor sit amet
+private_key: /tmp/testing.key
 peers:
+  - description: 'Server'
+    address: 1.2.3.4/24
+    listen_port: 23456
+    public_key: YdgU1urK6hGr6WH+r5bTtB4qrung5odZ8OKImwhOo2Y=
+    fwmark: 12345
+    routes: false
   - description: 'Peer #1'
     public_key: 7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=
     preshared_key: 4dcc2c74b23387db09bfc635f2cded65eb375db9bd55a64a8c5f18d26441dbc1
@@ -40,14 +41,15 @@ peers:
 `
 
 const fullIPv6ConfigYAML = `
-interface:
-  description: Lorem ipsum dolor sit amet
-  address: 2001:db8:0:12::2:1/64
-  listen_port: 23456
-  private_key: /tmp/testing.key
-  fwmark: 12345
-  routes: false
+description: Lorem ipsum dolor sit amet
+private_key: /tmp/testing.key
 peers:
+  - description: 'Server'
+    address: 2001:db8:0:12::2:1/64
+    listen_port: 23456
+    public_key: YdgU1urK6hGr6WH+r5bTtB4qrung5odZ8OKImwhOo2Y=
+    fwmark: 12345
+    routes: false
   - description: 'Peer #1'
     public_key: 7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=
     preshared_key: 4dcc2c74b23387db09bfc635f2cded65eb375db9bd55a64a8c5f18d26441dbc1
@@ -66,36 +68,31 @@ peers:
 `
 
 const minimalConfigYAML = `
-interface:
-  address: 1.2.3.4/24
-  listen_port: 23456
-  private_key: /tmp/testing.key
+private_key: /tmp/testing.key
+peers:
+  - listen_port: 23456
+    public_key: YdgU1urK6hGr6WH+r5bTtB4qrung5odZ8OKImwhOo2Y=
 `
 
 const minimalConfigWithPeerYAML = `
-interface:
-  address: 1.2.3.4/24
-  listen_port: 23456
-  private_key: /tmp/testing.key
+private_key: /tmp/testing.key
 peers:
+  - listen_port: 23456
+    public_key: YdgU1urK6hGr6WH+r5bTtB4qrung5odZ8OKImwhOo2Y=
   - public_key: 7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=
 `
 
 const configWithInvalidPeerKey = `
-interface:
-  address: 1.2.3.4/24
-  listen_port: 23456
-  private_key: /tmp/testing.key
+private_key: /tmp/testing.key
 peers:
+  - public_key: YdgU1urK6hGr6WH+r5bTtB4qrung5odZ8OKImwhOo2Y=
   - public_key: 7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD
 `
 
 const configWithEmptyPeerKey = `
-interface:
-  address: 1.2.3.4/24
-  listen_port: 23456
-  private_key: /tmp/testing.key
+private_key: /tmp/testing.key
 peers:
+  - public_key: YdgU1urK6hGr6WH+r5bTtB4qrung5odZ8OKImwhOo2Y=
   - {}
 `
 
@@ -113,13 +110,13 @@ func Test_ParseFullConfig(t *testing.T) {
 
 	addr, _, _ := net.ParseCIDR("1.2.3.4/24")
 
-	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Interface.Description)
-	assert.Equal(t, addr, c.Interface.Address.IP)
-	assert.Equal(t, 24, c.Interface.Address.Mask)
-	assert.Equal(t, 23456, c.Interface.ListenPort)
-	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", c.Interface.PrivateKey.String())
-	assert.Equal(t, 12345, c.Interface.FWMark)
-	assert.Equal(t, false, *c.Interface.SetUpRoutes)
+	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Description)
+	assert.Equal(t, addr, c.Self.Address.IP)
+	assert.Equal(t, 24, c.Self.Address.Mask)
+	assert.Equal(t, 23456, c.Self.ListenPort)
+	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", c.PrivateKey.String())
+	assert.Equal(t, 12345, c.Self.FWMark)
+	assert.Equal(t, false, *c.Self.SetUpRoutes)
 
 	assert.Equal(t, 2, len(c.Peers))
 
@@ -146,13 +143,13 @@ func Test_ParseFullIPv6Config(t *testing.T) {
 
 	addr, _, _ := net.ParseCIDR("2001:db8:0:12::2:1/64")
 
-	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Interface.Description)
-	assert.Equal(t, addr, c.Interface.Address.IP)
-	assert.Equal(t, 64, c.Interface.Address.Mask)
-	assert.Equal(t, 23456, c.Interface.ListenPort)
-	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", c.Interface.PrivateKey.String())
-	assert.Equal(t, 12345, c.Interface.FWMark)
-	assert.Equal(t, false, *c.Interface.SetUpRoutes)
+	assert.Equal(t, "Lorem ipsum dolor sit amet", c.Description)
+	assert.Equal(t, addr, c.Self.Address.IP)
+	assert.Equal(t, 64, c.Self.Address.Mask)
+	assert.Equal(t, 23456, c.Self.ListenPort)
+	assert.Equal(t, "7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=", c.PrivateKey.String())
+	assert.Equal(t, 12345, c.Self.FWMark)
+	assert.Equal(t, false, *c.Self.SetUpRoutes)
 
 	assert.Equal(t, 2, len(c.Peers))
 
@@ -177,7 +174,7 @@ func Test_ParseMinimalConfig(t *testing.T) {
 	c, err := ParseConfigReader(bytes.NewReader([]byte(minimalConfigYAML)))
 
 	assert.Nil(t, err)
-	assert.Equal(t, true, *c.Interface.SetUpRoutes)
+	assert.Equal(t, true, *c.Self.SetUpRoutes)
 	assert.Equal(t, 0, len(c.Peers))
 }
 
@@ -186,7 +183,7 @@ func Test_ParseMinimalConfigWithPeer(t *testing.T) {
 	c, err := ParseConfigReader(bytes.NewReader([]byte(minimalConfigWithPeerYAML)))
 
 	assert.Nil(t, err)
-	assert.Equal(t, true, *c.Interface.SetUpRoutes)
+	assert.Equal(t, true, *c.Self.SetUpRoutes)
 	assert.Equal(t, 1, len(c.Peers))
 	assert.Equal(t, "", c.Peers[0].PresharedKey.String())
 	assert.Equal(t, 0*time.Second, c.Peers[0].KeepaliveInterval)
@@ -212,20 +209,20 @@ func Test_CheckConfig(t *testing.T) {
 
 	k, _ := base64.StdEncoding.DecodeString("7X78dxEtCqCzVTxFYnxCcjxviI1vzeTl13yq+7rdPD4=")
 
-	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k)}}
+	c = &Config{PrivateKey: NewPrivateKey(k)}
 	assert.NotNil(t, c.Check())
 
-	c = &Config{Interface: Interface{ListenPort: 10000}}
+	c = &Config{Self: &Peer{ListenPort: 10000}}
 	assert.NotNil(t, c.Check())
 
 	ipnet := IPMask{IP: net.ParseIP("1.2.3.4"), Mask: 24}
-	c = &Config{Interface: Interface{Address: &ipnet}}
+	c = &Config{Self: &Peer{Address: &ipnet}}
 	assert.NotNil(t, c.Check())
 
-	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k), ListenPort: 10000}, Peers: []*Peer{{Description: "YOP"}}}
+	c = &Config{PrivateKey: NewPrivateKey(k), Self: &Peer{ListenPort: 10000}, Peers: []*Peer{{Description: "YOP"}}}
 	assert.NotNil(t, c.Check())
 
-	c = &Config{Interface: Interface{PrivateKey: NewPrivateKey(k), Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{{PublicKey: k}}}
+	c = &Config{PrivateKey: NewPrivateKey(k), Self: &Peer{Address: &ipnet, ListenPort: 10000}, Peers: []*Peer{{PublicKey: k}}}
 	assert.Nil(t, c.Check())
 }
 

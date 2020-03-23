@@ -25,14 +25,14 @@ func Test_SetRPFilter(t *testing.T) {
 func Test_AddWrongDevice(t *testing.T) {
 	assert.NotNil(t, AddDevice("lo", &lib.Config{}))
 
-	assert.NotNil(t, AddDevice("wgtest", &lib.Config{Interface: lib.Interface{Address: &lib.IPMask{IP: net.ParseIP("300.300.300.300/24"), Mask: 48}}}))
+	assert.NotNil(t, AddDevice("wgtest", &lib.Config{Self: &lib.Peer{Address: &lib.IPMask{IP: net.ParseIP("300.300.300.300/24"), Mask: 48}}}))
 	DeleteDevice("wgtest")
 }
 
 func Test_AddDevice(t *testing.T) {
 	instance := "wgtest"
 	c := &lib.Config{
-		Interface: lib.Interface{
+		Self: &lib.Peer{
 			Address: &lib.IPMask{IP: net.ParseIP("198.18.100.1"), Mask: 24},
 		},
 	}
@@ -59,7 +59,7 @@ func Test_AddDeviceRoutes(t *testing.T) {
 
 	instance := "wgtest"
 	c := &lib.Config{
-		Interface: lib.Interface{
+		Self: &lib.Peer{
 			Address: &lib.IPMask{IP: net.ParseIP("198.18.100.1"), Mask: 24},
 		},
 		Peers: []*lib.Peer{
@@ -87,7 +87,7 @@ func Test_AddDefaultRoutes(t *testing.T) {
 
 	instance := "wgtest"
 	c := &lib.Config{
-		Interface: lib.Interface{
+		Self: &lib.Peer{
 			Address:    &lib.IPMask{IP: net.ParseIP("198.18.100.1"), Mask: 24},
 			ListenPort: 12345,
 		},
