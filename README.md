@@ -98,6 +98,7 @@ Commands:
 
 ```
 # wgctl start vpn
+# wgctl start -f vpn
 # wgctl stop vpn
 # wgctl restart vpn
 ```

@@ -5,19 +5,22 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"net"
+	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"github.com/sirupsen/logrus"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/apognu/wgctl/lib"
 	"github.com/apognu/wgctl/wireguard"
 )
 
-func start(instance string, noRoutes bool) {
+func start(instance string, noRoutes, foreground bool) {
 	config, err := lib.ParseConfig(instance)
 	if err != nil {
 		logrus.Fatal(err)
@@ -45,6 +48,15 @@ func start(instance string, noRoutes bool) {
 		for _, cmdSpec := range config.Interface.PostUp {
 			execute(cmdSpec)
 		}
+	}
+
+	if foreground {
+		sg := make(chan os.Signal)
+		signal.Notify(sg, os.Interrupt, syscall.SIGTERM)
+
+		<-sg
+
+		stop(instance)
 	}
 }
 

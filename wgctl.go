@@ -23,6 +23,7 @@ func main() {
 	kpStart := kp.Command("start", "Bring up a tunnel.").Alias("up").PreAction(requireRoot)
 	kpStartInstance := kpStart.Arg("instance", instanceDesc).Required().String()
 	kpStartNoRoutes := kpStart.Flag("no-routes", "do not set up routing").Default("false").Bool()
+	kpStartForeground := kpStart.Flag("foreground", "stay in the foreground").Short('f').Default("false").Bool()
 
 	kpStop := kp.Command("stop", "Tear down a tunnel.").Alias("down").PreAction(requireRoot)
 	kpStopInstance := kpStop.Arg("instance", instanceDesc).Required().String()
@@ -66,12 +67,12 @@ func main() {
 
 	switch args {
 	case kpStart.FullCommand():
-		start(*kpStartInstance, *kpStartNoRoutes)
+		start(*kpStartInstance, *kpStartNoRoutes, *kpStartForeground)
 	case kpStop.FullCommand():
 		stop(*kpStopInstance)
 	case kpRestart.FullCommand():
 		stop(*kpRestartInstance)
-		start(*kpRestartInstance, *kpRestartNoRoutes)
+		start(*kpRestartInstance, *kpRestartNoRoutes, false)
 	case kpStatus.FullCommand():
 		status(*kpStatusInstance, *kpStatusShort, false)
 	case kpInfo.FullCommand():
