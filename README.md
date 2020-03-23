@@ -7,7 +7,7 @@ This is a personal project to allow WireGuard to be configured through the use o
 
 This tool is very opinionated and designed for my own use (working on that), it _might_ not be what you're looking for.
 
-The configuration file (which is subject to breaking changes until 1.0) should look like this:
+The configuration file should look like this (if you are using <= 1.0.0, please see [this README](https://github.com/apognu/wgctl/blob/v1.0.0/README.md)):
 
 ```yaml
 description: Personal VPN server #1
