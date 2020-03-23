@@ -238,15 +238,17 @@ func Test_ParseConfigNoExistFile(t *testing.T) {
 }
 
 func Test_ParseConfig(t *testing.T) {
-	ioutil.WriteFile("/etc/wireguard/existingconfig.yml", []byte(fullConfigYAML), 0400)
+	os.Setenv("WGCTL_CONFIG_PATH", "/tmp")
+	ioutil.WriteFile("/tmp/existingconfig.yml", []byte(fullConfigYAML), 0400)
 
 	_, err := ParseConfig("existingconfig")
 	assert.Nil(t, err)
 
-	_, err = ParseConfig("/etc/wireguard/existingconfig.yml")
+	_, err = ParseConfig("/tmp/existingconfig.yml")
 	assert.Nil(t, err)
 
-	os.Remove("/etc/wireguard/existingconfig.yml")
+	os.Unsetenv("WGCTL_CONFIG_PATH")
+	os.Remove("/tmp/existingconfig.yml")
 }
 
 func Test_GetPeer(t *testing.T) {
