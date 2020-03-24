@@ -1,4 +1,3 @@
-sudo: required
 language: go
 
 go:
@@ -35,8 +34,7 @@ deploy:
   body: $RELEASE_MESSAGE
   file: wgctl
   overwrite: true
-  skip_cleanup: true
   on:
     tags: true
-  api_key:
+  token:
     secure: I+ZBv7vBWmVphrB2HNpV+ksMoJNbQ0W9rhy+G9m3ajDa1wPm/t+XZ1G4Kgr7Kh3zHEt3slbYK5mRbidYXwVunVUt4edH62DxgD9Ofz6s7mnRhBiNCBn07rGVYVuebeX//lq2+2m2kj+zJ1nFE5/PJDLqWkoMzOsT5R615tKOHwlbnk9L0C0J2UpcZREsfEBCeS9Nvss2Lp2k1CCWnLA0yZOf0zTrCN38KB582ucht6G2+58nu3Ewmp7JH/2mMAcf5SZ3Eho76Hqmm9jWyvQXJ5XxvO4zz+6QcxPX+uU8J5kcl35Ij+591aLD3yPfxMVmXK5cNkh0vNQols36QZ0jD2lCjlin+jfNPpDsGk4Xa2+DhompCddv4/aOYV6rStSYopoOYau+9eXm+M1JRu+n7J5EGsF1qGdpeVcPATu54MfqS8EvdoMp6rP/zVyKer/VM2rUCtUKbxmBlmgKZT+KCsvk++2QiKbOnl1zShwXwyguG7cOTaUdxiUZqNcUv/o40joPHZ3QoG/LB8IDLv1okgDh7r3m3bUNBYG6tBYvHABOtYimT7vea+d3XQO+5wYStxW7ACFTZmbHuzEcaRjzHQZL4ZT2mVgxk0EsGy0GiAP+U7c6jBGZYInFK25TDNCNXpSRyAVswt4/hoq6RARrOnIGHeLHbKQQwKXbstJ75kU=
